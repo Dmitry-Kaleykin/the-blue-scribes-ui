@@ -1,0 +1,45 @@
+{
+  "name": "the-blue-scribes-ui",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local control panel for The Blue Scribes",
+  "type": "module",
+  "bin": {
+    "scribes-ui": "./dist-server/server/index.js"
+  },
+  "files": [
+    "dist",
+    "dist-server",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others --names server,client \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "tsx watch server/index.ts --dev",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vue-tsc -b && vite build",
+    "build:server": "tsc --project tsconfig.server.json",
+    "start": "node dist-server/server/index.js",
+    "typecheck": "vue-tsc -b && tsc --noEmit --project tsconfig.server.json",
+    "test": "node --import tsx --test \"server/**/*.test.ts\"",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fastify/static": "^10.1.2",
+    "fastify": "^5.6.2",
+    "@lucide/vue": "^1.26.0",
+    "open": "^10.2.0",
+    "the-blue-scribes": "file:../the-blue-scribes",
+    "vue": "^3.5.39"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/tsconfig": "^0.9.1",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vue-tsc": "^3.3.5"
+  }
+}
