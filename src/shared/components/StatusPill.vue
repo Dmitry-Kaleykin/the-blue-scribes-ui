@@ -1,10 +1,3 @@
-<script setup lang="ts">
-	defineProps<{
-		tone?: 'success' | 'warning' | 'danger' | 'neutral' | 'info'
-		label: string
-	}>()
-</script>
-
 <template>
 	<span
 		class="status-pill"
@@ -14,3 +7,10 @@
 		{{ label }}
 	</span>
 </template>
+
+<script setup lang="ts">
+	defineProps<{
+		tone?: 'success' | 'warning' | 'danger' | 'neutral' | 'info'
+		label: string
+	}>()
+</script>

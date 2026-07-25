@@ -1,97 +1,3 @@
-<script setup lang="ts">
-	import { computed, reactive, ref } from 'vue'
-	import { CheckCircle2, LoaderCircle, RefreshCw, Server } from '@lucide/vue'
-
-	import type { ModelSummary, ProfileInput, ProviderProfile } from '../../../shared/contracts'
-	import { api } from '../../shared/api/client'
-	import BaseModal from '../../shared/components/BaseModal.vue'
-
-	const props = defineProps<{
-		profile?: ProviderProfile
-	}>()
-
-	const emit = defineEmits<{
-		close: []
-		saved: [profile: ProviderProfile]
-	}>()
-
-	const form = reactive({
-		name: props.profile?.name ?? '',
-		model: props.profile?.embedding.model ?? '',
-		dimensions: props.profile?.embedding.dimensions ?? 1024,
-		detectDimensions: props.profile === undefined,
-		baseUrl: props.profile?.embedding.baseUrl ?? 'http://127.0.0.1:1234/v1',
-		maximumInputs: props.profile?.embedding.maximumInputs ?? 16,
-		embeddingSuffix: props.profile?.embedding.embeddingSuffix ?? '',
-		rerankingModel: props.profile?.reranking?.model ?? '',
-		rerankingInstruction: props.profile?.reranking?.instruction ?? '',
-	})
-	const models = ref<readonly ModelSummary[]>([])
-	const loadingModels = ref(false)
-	const saving = ref(false)
-	const testing = ref(false)
-	const message = ref('')
-	const error = ref('')
-
-	const canTest = computed(() => props.profile !== undefined && !saving.value)
-
-	async function discoverModels(): Promise<void> {
-		loadingModels.value = true
-		error.value = ''
-		try {
-			const response = await api.models(form.baseUrl.trim() || undefined)
-			models.value = response.models
-			message.value = `${response.count} model${response.count === 1 ? '' : 's'} found in LM Studio.`
-		} catch (reason: unknown) {
-			error.value = reason instanceof Error ? reason.message : String(reason)
-		} finally {
-			loadingModels.value = false
-		}
-	}
-
-	async function save(): Promise<void> {
-		saving.value = true
-		message.value = ''
-		error.value = ''
-		try {
-			const input: ProfileInput = {
-				name: form.name.trim(),
-				model: form.model.trim(),
-				detectDimensions: form.detectDimensions,
-				...(form.detectDimensions ? {} : { dimensions: form.dimensions }),
-				...(form.baseUrl.trim() ? { baseUrl: form.baseUrl.trim() } : {}),
-				maximumInputs: form.maximumInputs,
-				...(form.embeddingSuffix ? { embeddingSuffix: form.embeddingSuffix } : {}),
-				...(form.rerankingModel.trim() ? { rerankingModel: form.rerankingModel.trim() } : {}),
-				...(form.rerankingInstruction.trim() ? { rerankingInstruction: form.rerankingInstruction.trim() } : {}),
-			}
-			const saved = await api.saveProfile(input)
-			emit('saved', saved)
-		} catch (reason: unknown) {
-			error.value = reason instanceof Error ? reason.message : String(reason)
-		} finally {
-			saving.value = false
-		}
-	}
-
-	async function testSavedProfile(): Promise<void> {
-		if (!props.profile) return
-		testing.value = true
-		message.value = ''
-		error.value = ''
-		try {
-			const result = await api.testProfile(props.profile.name)
-			message.value = result.reranking
-				? `Embedding returned ${result.embedding.dimensions} dimensions; reranking score ${result.reranking.score.toFixed(3)}.`
-				: `Embedding returned ${result.embedding.dimensions} dimensions.`
-		} catch (reason: unknown) {
-			error.value = reason instanceof Error ? reason.message : String(reason)
-		} finally {
-			testing.value = false
-		}
-	}
-</script>
-
 <template>
 	<BaseModal
 		:title="profile ? `Edit ${profile.name}` : 'New provider profile'"
@@ -284,3 +190,97 @@
 		</form>
 	</BaseModal>
 </template>
+
+<script setup lang="ts">
+	import { computed, reactive, ref } from 'vue'
+	import { CheckCircle2, LoaderCircle, RefreshCw, Server } from '@lucide/vue'
+
+	import type { ModelSummary, ProfileInput, ProviderProfile } from '../../../shared/contracts'
+	import { api } from '../../shared/api/client'
+	import BaseModal from '../../shared/components/BaseModal.vue'
+
+	const props = defineProps<{
+		profile?: ProviderProfile
+	}>()
+
+	const emit = defineEmits<{
+		close: []
+		saved: [profile: ProviderProfile]
+	}>()
+
+	const form = reactive({
+		name: props.profile?.name ?? '',
+		model: props.profile?.embedding.model ?? '',
+		dimensions: props.profile?.embedding.dimensions ?? 1024,
+		detectDimensions: props.profile === undefined,
+		baseUrl: props.profile?.embedding.baseUrl ?? 'http://127.0.0.1:1234/v1',
+		maximumInputs: props.profile?.embedding.maximumInputs ?? 16,
+		embeddingSuffix: props.profile?.embedding.embeddingSuffix ?? '',
+		rerankingModel: props.profile?.reranking?.model ?? '',
+		rerankingInstruction: props.profile?.reranking?.instruction ?? '',
+	})
+	const models = ref<readonly ModelSummary[]>([])
+	const loadingModels = ref(false)
+	const saving = ref(false)
+	const testing = ref(false)
+	const message = ref('')
+	const error = ref('')
+
+	const canTest = computed(() => props.profile !== undefined && !saving.value)
+
+	async function discoverModels(): Promise<void> {
+		loadingModels.value = true
+		error.value = ''
+		try {
+			const response = await api.models(form.baseUrl.trim() || undefined)
+			models.value = response.models
+			message.value = `${response.count} model${response.count === 1 ? '' : 's'} found in LM Studio.`
+		} catch (reason: unknown) {
+			error.value = reason instanceof Error ? reason.message : String(reason)
+		} finally {
+			loadingModels.value = false
+		}
+	}
+
+	async function save(): Promise<void> {
+		saving.value = true
+		message.value = ''
+		error.value = ''
+		try {
+			const input: ProfileInput = {
+				name: form.name.trim(),
+				model: form.model.trim(),
+				detectDimensions: form.detectDimensions,
+				...(form.detectDimensions ? {} : { dimensions: form.dimensions }),
+				...(form.baseUrl.trim() ? { baseUrl: form.baseUrl.trim() } : {}),
+				maximumInputs: form.maximumInputs,
+				...(form.embeddingSuffix ? { embeddingSuffix: form.embeddingSuffix } : {}),
+				...(form.rerankingModel.trim() ? { rerankingModel: form.rerankingModel.trim() } : {}),
+				...(form.rerankingInstruction.trim() ? { rerankingInstruction: form.rerankingInstruction.trim() } : {}),
+			}
+			const saved = await api.saveProfile(input)
+			emit('saved', saved)
+		} catch (reason: unknown) {
+			error.value = reason instanceof Error ? reason.message : String(reason)
+		} finally {
+			saving.value = false
+		}
+	}
+
+	async function testSavedProfile(): Promise<void> {
+		if (!props.profile) return
+		testing.value = true
+		message.value = ''
+		error.value = ''
+		try {
+			const result = await api.testProfile(props.profile.name)
+			message.value = result.reranking
+				? `Embedding returned ${result.embedding.dimensions} dimensions; reranking score ${result.reranking.score.toFixed(3)}.`
+				: `Embedding returned ${result.embedding.dimensions} dimensions.`
+		} catch (reason: unknown) {
+			error.value = reason instanceof Error ? reason.message : String(reason)
+		} finally {
+			testing.value = false
+		}
+	}
+</script>

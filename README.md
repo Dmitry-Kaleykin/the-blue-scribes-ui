@@ -51,6 +51,8 @@ serves the built Vue application and API from the same process. Stop it with
 ```bash
 npm run format
 npm run format:check
+npm run lint
+npm run lint:fix
 npm run typecheck
 npm test
 npm run build

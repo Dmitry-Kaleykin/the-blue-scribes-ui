@@ -1,17 +1,3 @@
-<script setup lang="ts">
-	import { X } from '@lucide/vue'
-
-	defineProps<{
-		title: string
-		description?: string
-		wide?: boolean
-	}>()
-
-	const emit = defineEmits<{
-		close: []
-	}>()
-</script>
-
 <template>
 	<div
 		class="modal-backdrop"
@@ -50,3 +36,17 @@
 		</section>
 	</div>
 </template>
+
+<script setup lang="ts">
+	import { X } from '@lucide/vue'
+
+	defineProps<{
+		title: string
+		description?: string
+		wide?: boolean
+	}>()
+
+	const emit = defineEmits<{
+		close: []
+	}>()
+</script>

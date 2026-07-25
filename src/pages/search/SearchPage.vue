@@ -1,99 +1,3 @@
-<script setup lang="ts">
-	import { computed, reactive, ref, watch } from 'vue'
-	import { Braces, ChevronDown, ChevronUp, FileCode2, LoaderCircle, Search, SlidersHorizontal } from '@lucide/vue'
-
-	import type { ProjectSummary, ProviderProfile, SearchResponse } from '../../../shared/contracts'
-	import { api } from '../../shared/api/client'
-	const props = defineProps<{
-		projects: readonly ProjectSummary[]
-		profiles: readonly ProviderProfile[]
-		initialProject?: string
-	}>()
-
-	const form = reactive({
-		project: props.initialProject ?? props.projects[0]?.projectIdentifier ?? '',
-		query: '',
-		profile: '',
-		limit: 10,
-		language: '',
-		reranking: false,
-		rerankCandidates: 50,
-		contextBefore: 1,
-		contextAfter: 1,
-		contextCharacters: 4000,
-	})
-	const advanced = ref(false)
-	const searching = ref(false)
-	const error = ref('')
-	const response = ref<SearchResponse>()
-	const expandedResults = ref(new Set<number>())
-
-	watch(
-		() => props.initialProject,
-		(project) => {
-			if (project) form.project = project
-		},
-	)
-
-	const selectedProject = computed(() =>
-		props.projects.find(({ projectIdentifier }) => projectIdentifier === form.project),
-	)
-	const effectiveProfile = computed(() => {
-		const recipe = selectedProject.value?.recipe
-		const name = form.profile || (recipe?.provider.type === 'profile' ? recipe.provider.profile : '')
-		return props.profiles.find((profile) => profile.name === name)
-	})
-	const rerankingAvailable = computed(() => effectiveProfile.value?.reranking !== undefined)
-
-	watch(
-		() => [form.project, form.profile] as const,
-		() => {
-			form.reranking = rerankingAvailable.value
-		},
-		{ immediate: true },
-	)
-
-	function projectName(project: ProjectSummary): string {
-		return project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier
-	}
-
-	async function submit(): Promise<void> {
-		if (!form.project || !form.query.trim()) return
-		searching.value = true
-		error.value = ''
-		response.value = undefined
-		expandedResults.value = new Set()
-		try {
-			response.value = await api.search(form.project, {
-				query: form.query.trim(),
-				...(form.profile ? { profile: form.profile } : {}),
-				limit: form.limit,
-				...(form.language.trim() ? { language: form.language.trim() } : {}),
-				reranking: form.reranking,
-				...(form.reranking ? { rerankCandidates: form.rerankCandidates } : {}),
-				contextBefore: form.contextBefore,
-				contextAfter: form.contextAfter,
-				contextCharacters: form.contextCharacters,
-			})
-		} catch (reason: unknown) {
-			error.value = reason instanceof Error ? reason.message : String(reason)
-		} finally {
-			searching.value = false
-		}
-	}
-
-	function toggleResult(index: number): void {
-		const next = new Set(expandedResults.value)
-		if (next.has(index)) next.delete(index)
-		else next.add(index)
-		expandedResults.value = next
-	}
-
-	function score(value: number | undefined): string {
-		return value === undefined ? '—' : value.toFixed(3)
-	}
-</script>
-
 <template>
 	<main class="page">
 		<header class="page-header">
@@ -357,3 +261,99 @@
 		</section>
 	</main>
 </template>
+
+<script setup lang="ts">
+	import { computed, reactive, ref, watch } from 'vue'
+	import { Braces, ChevronDown, ChevronUp, FileCode2, LoaderCircle, Search, SlidersHorizontal } from '@lucide/vue'
+
+	import type { ProjectSummary, ProviderProfile, SearchResponse } from '../../../shared/contracts'
+	import { api } from '../../shared/api/client'
+	const props = defineProps<{
+		projects: readonly ProjectSummary[]
+		profiles: readonly ProviderProfile[]
+		initialProject?: string
+	}>()
+
+	const form = reactive({
+		project: props.initialProject ?? props.projects[0]?.projectIdentifier ?? '',
+		query: '',
+		profile: '',
+		limit: 10,
+		language: '',
+		reranking: false,
+		rerankCandidates: 50,
+		contextBefore: 1,
+		contextAfter: 1,
+		contextCharacters: 4000,
+	})
+	const advanced = ref(false)
+	const searching = ref(false)
+	const error = ref('')
+	const response = ref<SearchResponse>()
+	const expandedResults = ref(new Set<number>())
+
+	watch(
+		() => props.initialProject,
+		(project) => {
+			if (project) form.project = project
+		},
+	)
+
+	const selectedProject = computed(() =>
+		props.projects.find(({ projectIdentifier }) => projectIdentifier === form.project),
+	)
+	const effectiveProfile = computed(() => {
+		const recipe = selectedProject.value?.recipe
+		const name = form.profile || (recipe?.provider.type === 'profile' ? recipe.provider.profile : '')
+		return props.profiles.find((profile) => profile.name === name)
+	})
+	const rerankingAvailable = computed(() => effectiveProfile.value?.reranking !== undefined)
+
+	watch(
+		() => [form.project, form.profile] as const,
+		() => {
+			form.reranking = rerankingAvailable.value
+		},
+		{ immediate: true },
+	)
+
+	function projectName(project: ProjectSummary): string {
+		return project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier
+	}
+
+	async function submit(): Promise<void> {
+		if (!form.project || !form.query.trim()) return
+		searching.value = true
+		error.value = ''
+		response.value = undefined
+		expandedResults.value = new Set()
+		try {
+			response.value = await api.search(form.project, {
+				query: form.query.trim(),
+				...(form.profile ? { profile: form.profile } : {}),
+				limit: form.limit,
+				...(form.language.trim() ? { language: form.language.trim() } : {}),
+				reranking: form.reranking,
+				...(form.reranking ? { rerankCandidates: form.rerankCandidates } : {}),
+				contextBefore: form.contextBefore,
+				contextAfter: form.contextAfter,
+				contextCharacters: form.contextCharacters,
+			})
+		} catch (reason: unknown) {
+			error.value = reason instanceof Error ? reason.message : String(reason)
+		} finally {
+			searching.value = false
+		}
+	}
+
+	function toggleResult(index: number): void {
+		const next = new Set(expandedResults.value)
+		if (next.has(index)) next.delete(index)
+		else next.add(index)
+		expandedResults.value = next
+	}
+
+	function score(value: number | undefined): string {
+		return value === undefined ? '—' : value.toFixed(3)
+	}
+</script>

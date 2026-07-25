@@ -1,21 +1,3 @@
-<script setup lang="ts">
-	import { Plus, Server, Settings2, Trash2, Zap } from '@lucide/vue'
-
-	import type { ProviderProfile } from '../../../shared/contracts'
-	import StatusPill from '../../shared/components/StatusPill.vue'
-
-	defineProps<{
-		profiles: readonly ProviderProfile[]
-	}>()
-
-	const emit = defineEmits<{
-		create: []
-		edit: [profile: ProviderProfile]
-		test: [profile: ProviderProfile]
-		remove: [profile: ProviderProfile]
-	}>()
-</script>
-
 <template>
 	<main class="page">
 		<header class="page-header page-header--split">
@@ -120,3 +102,21 @@
 		</section>
 	</main>
 </template>
+
+<script setup lang="ts">
+	import { Plus, Server, Settings2, Trash2, Zap } from '@lucide/vue'
+
+	import type { ProviderProfile } from '../../../shared/contracts'
+	import StatusPill from '../../shared/components/StatusPill.vue'
+
+	defineProps<{
+		profiles: readonly ProviderProfile[]
+	}>()
+
+	const emit = defineEmits<{
+		create: []
+		edit: [profile: ProviderProfile]
+		test: [profile: ProviderProfile]
+		remove: [profile: ProviderProfile]
+	}>()
+</script>

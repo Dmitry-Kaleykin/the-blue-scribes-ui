@@ -1,3 +1,217 @@
+<template>
+	<div class="app-shell">
+		<aside
+			class="sidebar"
+			:class="{ 'sidebar--open': mobileMenu }"
+		>
+			<div class="brand">
+				<span class="brand__mark"><BookOpenText :size="23" /></span>
+				<div><strong>The Blue Scribes</strong><small>Local retrieval</small></div>
+				<button
+					class="icon-button sidebar__close"
+					type="button"
+					aria-label="Close menu"
+					@click="mobileMenu = false"
+				>
+					<X :size="19" />
+				</button>
+			</div>
+
+			<nav
+				class="nav-list"
+				aria-label="Primary navigation"
+			>
+				<button
+					:class="{ active: activeView === 'dashboard' }"
+					type="button"
+					@click="navigate('dashboard')"
+				>
+					<LayoutDashboard :size="19" /> Overview
+				</button>
+				<button
+					:class="{ active: activeView === 'search' }"
+					type="button"
+					@click="openSearch()"
+				>
+					<Search :size="19" /> Search
+				</button>
+				<button
+					:class="{ active: activeView === 'profiles' }"
+					type="button"
+					@click="navigate('profiles')"
+				>
+					<Server :size="19" /> Provider profiles
+				</button>
+			</nav>
+
+			<div class="sidebar__section">
+				<p>Projects</p>
+				<button
+					v-for="project in data.projects.slice(0, 7)"
+					:key="project.projectIdentifier"
+					class="project-link"
+					:class="{
+						active: activeView === 'project' && selectedProjectId === project.projectIdentifier,
+					}"
+					type="button"
+					@click="openProject(project)"
+				>
+					<FolderCode :size="17" />
+					<span>{{ project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier }}</span>
+					<i v-if="project.active" />
+				</button>
+				<span
+					v-if="data.projects.length === 0"
+					class="sidebar__empty"
+					>No indexes yet</span
+				>
+			</div>
+
+			<div class="sidebar__bottom">
+				<button
+					class="sidebar-index"
+					type="button"
+					:disabled="data.profiles.length === 0"
+					@click="indexModal = true"
+				>
+					<Plus :size="17" /> Index project
+				</button>
+				<div class="local-status"><span /> Local only · 127.0.0.1</div>
+			</div>
+		</aside>
+
+		<div
+			v-if="mobileMenu"
+			class="sidebar-scrim"
+			@click="mobileMenu = false"
+		/>
+
+		<section class="workspace">
+			<header class="topbar">
+				<button
+					class="icon-button mobile-menu"
+					type="button"
+					aria-label="Open menu"
+					@click="mobileMenu = true"
+				>
+					<Menu :size="20" />
+				</button>
+				<div class="topbar__status">
+					<span v-if="activeJobCount > 0"
+						><LoaderCircle
+							class="spin"
+							:size="15"
+						/>
+						{{ activeJobCount }} indexing</span
+					>
+					<span v-else><i /> Ready</span>
+				</div>
+				<button
+					class="icon-button"
+					type="button"
+					aria-label="Refresh workspace"
+					@click="load"
+				>
+					<Settings :size="18" />
+				</button>
+			</header>
+
+			<div
+				v-if="loading"
+				class="app-loading"
+			>
+				<LoaderCircle
+					class="spin"
+					:size="28"
+				/>
+				<p>Reading local Scribes state…</p>
+			</div>
+			<div
+				v-else-if="loadError"
+				class="app-error"
+			>
+				<h1>Could not load the local workspace</h1>
+				<p>{{ loadError }}</p>
+				<button
+					class="button button--primary"
+					type="button"
+					@click="load"
+				>
+					Try again
+				</button>
+			</div>
+			<template v-else>
+				<DashboardPage
+					v-if="activeView === 'dashboard'"
+					:projects="data.projects"
+					:profiles="data.profiles"
+					:jobs="data.jobs"
+					@index="indexModal = true"
+					@project="openProject"
+					@search="openSearch"
+					@profiles="navigate('profiles')"
+					@cancel-job="cancelJob"
+				/>
+				<ProfilesPage
+					v-else-if="activeView === 'profiles'"
+					:profiles="data.profiles"
+					@create="openProfile()"
+					@edit="openProfile"
+					@test="testProfile"
+					@remove="removeProfile"
+				/>
+				<SearchPage
+					v-else-if="activeView === 'search'"
+					:projects="data.projects"
+					:profiles="data.profiles"
+					:initial-project="initialSearchProject"
+				/>
+				<ProjectPage
+					v-else-if="activeView === 'project' && selectedProject"
+					:project="selectedProject"
+					:mcp-command="data.environment.mcpCommand"
+					@back="navigate('dashboard')"
+					@search="openSearch(selectedProject)"
+					@reindex="reindexProject"
+					@activate="activateTarget"
+					@rename="renameTarget"
+					@remove="removeProject"
+				/>
+			</template>
+		</section>
+
+		<IndexProjectModal
+			v-if="indexModal"
+			:profiles="data.profiles"
+			@close="indexModal = false"
+			@started="jobStarted"
+		/>
+		<ProfileModal
+			v-if="profileModal"
+			:profile="editingProfile"
+			@close="profileModal = false"
+			@saved="profileSaved"
+		/>
+
+		<div
+			v-if="toast"
+			class="toast"
+			:class="`toast--${toast.tone}`"
+			role="status"
+		>
+			<span />
+			{{ toast.message }}
+			<button
+				type="button"
+				aria-label="Dismiss notification"
+				@click="toast = undefined"
+			>
+				<X :size="16" />
+			</button>
+		</div>
+	</div>
+</template>
+
 <script setup lang="ts">
 	import { computed, onMounted, onUnmounted, ref } from 'vue'
 	import {
@@ -234,217 +448,3 @@
 		}, 5000)
 	}
 </script>
-
-<template>
-	<div class="app-shell">
-		<aside
-			class="sidebar"
-			:class="{ 'sidebar--open': mobileMenu }"
-		>
-			<div class="brand">
-				<span class="brand__mark"><BookOpenText :size="23" /></span>
-				<div><strong>The Blue Scribes</strong><small>Local retrieval</small></div>
-				<button
-					class="icon-button sidebar__close"
-					type="button"
-					aria-label="Close menu"
-					@click="mobileMenu = false"
-				>
-					<X :size="19" />
-				</button>
-			</div>
-
-			<nav
-				class="nav-list"
-				aria-label="Primary navigation"
-			>
-				<button
-					:class="{ active: activeView === 'dashboard' }"
-					type="button"
-					@click="navigate('dashboard')"
-				>
-					<LayoutDashboard :size="19" /> Overview
-				</button>
-				<button
-					:class="{ active: activeView === 'search' }"
-					type="button"
-					@click="openSearch()"
-				>
-					<Search :size="19" /> Search
-				</button>
-				<button
-					:class="{ active: activeView === 'profiles' }"
-					type="button"
-					@click="navigate('profiles')"
-				>
-					<Server :size="19" /> Provider profiles
-				</button>
-			</nav>
-
-			<div class="sidebar__section">
-				<p>Projects</p>
-				<button
-					v-for="project in data.projects.slice(0, 7)"
-					:key="project.projectIdentifier"
-					class="project-link"
-					:class="{
-						active: activeView === 'project' && selectedProjectId === project.projectIdentifier,
-					}"
-					type="button"
-					@click="openProject(project)"
-				>
-					<FolderCode :size="17" />
-					<span>{{ project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier }}</span>
-					<i v-if="project.active" />
-				</button>
-				<span
-					v-if="data.projects.length === 0"
-					class="sidebar__empty"
-					>No indexes yet</span
-				>
-			</div>
-
-			<div class="sidebar__bottom">
-				<button
-					class="sidebar-index"
-					type="button"
-					:disabled="data.profiles.length === 0"
-					@click="indexModal = true"
-				>
-					<Plus :size="17" /> Index project
-				</button>
-				<div class="local-status"><span /> Local only · 127.0.0.1</div>
-			</div>
-		</aside>
-
-		<div
-			v-if="mobileMenu"
-			class="sidebar-scrim"
-			@click="mobileMenu = false"
-		/>
-
-		<section class="workspace">
-			<header class="topbar">
-				<button
-					class="icon-button mobile-menu"
-					type="button"
-					aria-label="Open menu"
-					@click="mobileMenu = true"
-				>
-					<Menu :size="20" />
-				</button>
-				<div class="topbar__status">
-					<span v-if="activeJobCount > 0"
-						><LoaderCircle
-							class="spin"
-							:size="15"
-						/>
-						{{ activeJobCount }} indexing</span
-					>
-					<span v-else><i /> Ready</span>
-				</div>
-				<button
-					class="icon-button"
-					type="button"
-					aria-label="Refresh workspace"
-					@click="load"
-				>
-					<Settings :size="18" />
-				</button>
-			</header>
-
-			<div
-				v-if="loading"
-				class="app-loading"
-			>
-				<LoaderCircle
-					class="spin"
-					:size="28"
-				/>
-				<p>Reading local Scribes state…</p>
-			</div>
-			<div
-				v-else-if="loadError"
-				class="app-error"
-			>
-				<h1>Could not load the local workspace</h1>
-				<p>{{ loadError }}</p>
-				<button
-					class="button button--primary"
-					type="button"
-					@click="load"
-				>
-					Try again
-				</button>
-			</div>
-			<template v-else>
-				<DashboardPage
-					v-if="activeView === 'dashboard'"
-					:projects="data.projects"
-					:profiles="data.profiles"
-					:jobs="data.jobs"
-					@index="indexModal = true"
-					@project="openProject"
-					@search="openSearch"
-					@profiles="navigate('profiles')"
-					@cancel-job="cancelJob"
-				/>
-				<ProfilesPage
-					v-else-if="activeView === 'profiles'"
-					:profiles="data.profiles"
-					@create="openProfile()"
-					@edit="openProfile"
-					@test="testProfile"
-					@remove="removeProfile"
-				/>
-				<SearchPage
-					v-else-if="activeView === 'search'"
-					:projects="data.projects"
-					:profiles="data.profiles"
-					:initial-project="initialSearchProject"
-				/>
-				<ProjectPage
-					v-else-if="activeView === 'project' && selectedProject"
-					:project="selectedProject"
-					:mcp-command="data.environment.mcpCommand"
-					@back="navigate('dashboard')"
-					@search="openSearch(selectedProject)"
-					@reindex="reindexProject"
-					@activate="activateTarget"
-					@rename="renameTarget"
-					@remove="removeProject"
-				/>
-			</template>
-		</section>
-
-		<IndexProjectModal
-			v-if="indexModal"
-			:profiles="data.profiles"
-			@close="indexModal = false"
-			@started="jobStarted"
-		/>
-		<ProfileModal
-			v-if="profileModal"
-			:profile="editingProfile"
-			@close="profileModal = false"
-			@saved="profileSaved"
-		/>
-
-		<div
-			v-if="toast"
-			class="toast"
-			:class="`toast--${toast.tone}`"
-			role="status"
-		>
-			<span />
-			{{ toast.message }}
-			<button
-				type="button"
-				aria-label="Dismiss notification"
-				@click="toast = undefined"
-			>
-				<X :size="16" />
-			</button>
-		</div>
-	</div>
-</template>

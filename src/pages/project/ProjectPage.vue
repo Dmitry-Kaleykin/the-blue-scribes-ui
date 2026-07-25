@@ -1,100 +1,3 @@
-<script setup lang="ts">
-	import { computed, ref } from 'vue'
-	import {
-		ArrowLeft,
-		Check,
-		Clipboard,
-		Database,
-		FolderCode,
-		GitBranch,
-		Pencil,
-		RefreshCw,
-		Search,
-		TerminalSquare,
-		Trash2,
-	} from '@lucide/vue'
-
-	import type { ProjectSummary } from '../../../shared/contracts'
-	import StatusPill from '../../shared/components/StatusPill.vue'
-
-	const props = defineProps<{
-		project: ProjectSummary
-		mcpCommand?: string
-	}>()
-
-	const emit = defineEmits<{
-		back: []
-		search: []
-		reindex: []
-		activate: [target: string]
-		rename: [target: string, name: string]
-		remove: []
-	}>()
-
-	const copied = ref(false)
-	const editingTarget = ref('')
-	const targetName = ref('')
-
-	const name = computed(() => props.project.root?.split('/').filter(Boolean).at(-1) ?? props.project.projectIdentifier)
-	const recipeProfile = computed(() => {
-		const provider = props.project.recipe?.provider
-		return provider?.type === 'profile' ? provider.profile : undefined
-	})
-	const mcpConfig = computed(() =>
-		JSON.stringify(
-			{
-				'the-blue-scribes': {
-					autoApprove: ['search_project'],
-					disabled: false,
-					timeout: 120,
-					type: 'stdio',
-					command: props.mcpCommand ?? 'scribes-mcp',
-					args: [
-						'--project',
-						props.project.root ?? props.project.projectIdentifier,
-						...(recipeProfile.value ? ['--profile', recipeProfile.value] : []),
-						'--tools',
-						'search_project',
-					],
-				},
-			},
-			null,
-			2,
-		),
-	)
-
-	function editTarget(target: string): void {
-		editingTarget.value = target
-		targetName.value = target
-	}
-
-	function saveTarget(): void {
-		const next = targetName.value.trim()
-		if (!editingTarget.value || !next || next === editingTarget.value) {
-			editingTarget.value = ''
-			return
-		}
-		emit('rename', editingTarget.value, next)
-		editingTarget.value = ''
-	}
-
-	async function copyConfig(): Promise<void> {
-		await navigator.clipboard.writeText(mcpConfig.value)
-		copied.value = true
-		setTimeout(() => {
-			copied.value = false
-		}, 1800)
-	}
-
-	function formatDate(value?: string): string {
-		if (!value) return '—'
-		return new Intl.DateTimeFormat(undefined, {
-			dateStyle: 'medium',
-			timeStyle: 'short',
-		}).format(new Date(value))
-	}
-</script>
-
 <template>
 	<main class="page">
 		<button
@@ -321,3 +224,100 @@
 		</section>
 	</main>
 </template>
+
+<script setup lang="ts">
+	import { computed, ref } from 'vue'
+	import {
+		ArrowLeft,
+		Check,
+		Clipboard,
+		Database,
+		FolderCode,
+		GitBranch,
+		Pencil,
+		RefreshCw,
+		Search,
+		TerminalSquare,
+		Trash2,
+	} from '@lucide/vue'
+
+	import type { ProjectSummary } from '../../../shared/contracts'
+	import StatusPill from '../../shared/components/StatusPill.vue'
+
+	const props = defineProps<{
+		project: ProjectSummary
+		mcpCommand?: string
+	}>()
+
+	const emit = defineEmits<{
+		back: []
+		search: []
+		reindex: []
+		activate: [target: string]
+		rename: [target: string, name: string]
+		remove: []
+	}>()
+
+	const copied = ref(false)
+	const editingTarget = ref('')
+	const targetName = ref('')
+
+	const name = computed(() => props.project.root?.split('/').filter(Boolean).at(-1) ?? props.project.projectIdentifier)
+	const recipeProfile = computed(() => {
+		const provider = props.project.recipe?.provider
+		return provider?.type === 'profile' ? provider.profile : undefined
+	})
+	const mcpConfig = computed(() =>
+		JSON.stringify(
+			{
+				'the-blue-scribes': {
+					autoApprove: ['search_project'],
+					disabled: false,
+					timeout: 120,
+					type: 'stdio',
+					command: props.mcpCommand ?? 'scribes-mcp',
+					args: [
+						'--project',
+						props.project.root ?? props.project.projectIdentifier,
+						...(recipeProfile.value ? ['--profile', recipeProfile.value] : []),
+						'--tools',
+						'search_project',
+					],
+				},
+			},
+			null,
+			2,
+		),
+	)
+
+	function editTarget(target: string): void {
+		editingTarget.value = target
+		targetName.value = target
+	}
+
+	function saveTarget(): void {
+		const next = targetName.value.trim()
+		if (!editingTarget.value || !next || next === editingTarget.value) {
+			editingTarget.value = ''
+			return
+		}
+		emit('rename', editingTarget.value, next)
+		editingTarget.value = ''
+	}
+
+	async function copyConfig(): Promise<void> {
+		await navigator.clipboard.writeText(mcpConfig.value)
+		copied.value = true
+		setTimeout(() => {
+			copied.value = false
+		}, 1800)
+	}
+
+	function formatDate(value?: string): string {
+		if (!value) return '—'
+		return new Intl.DateTimeFormat(undefined, {
+			dateStyle: 'medium',
+			timeStyle: 'short',
+		}).format(new Date(value))
+	}
+</script>

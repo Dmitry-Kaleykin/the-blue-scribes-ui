@@ -1,69 +1,3 @@
-<script setup lang="ts">
-	import { computed, reactive, ref } from 'vue'
-	import { FolderSearch, LoaderCircle } from '@lucide/vue'
-
-	import type { IndexProjectInput, IndexingJob, ProviderProfile } from '../../../shared/contracts'
-	import { api } from '../../shared/api/client'
-	import BaseModal from '../../shared/components/BaseModal.vue'
-
-	const props = defineProps<{
-		profiles: readonly ProviderProfile[]
-	}>()
-
-	const emit = defineEmits<{
-		close: []
-		started: [job: IndexingJob]
-	}>()
-
-	const form = reactive({
-		root: '',
-		profile: props.profiles[0]?.name ?? '',
-		target: '',
-		keepReplacedBuilds: 1,
-		maximumChunkSize: 3000,
-		windows1251: false,
-		allowDirty: false,
-		include: '',
-		exclude: '',
-	})
-	const advanced = ref(false)
-	const submitting = ref(false)
-	const error = ref('')
-
-	const canSubmit = computed(() => form.root.trim().length > 0 && form.profile.length > 0 && !submitting.value)
-
-	function lines(value: string): string[] | undefined {
-		const items = value
-			.split('\n')
-			.map((item) => item.trim())
-			.filter(Boolean)
-		return items.length === 0 ? undefined : items
-	}
-
-	async function submit(): Promise<void> {
-		submitting.value = true
-		error.value = ''
-		try {
-			const input: IndexProjectInput = {
-				root: form.root.trim(),
-				profile: form.profile,
-				keepReplacedBuilds: form.keepReplacedBuilds,
-				maximumChunkSize: form.maximumChunkSize,
-				...(form.target.trim() ? { target: form.target.trim() } : {}),
-				...(form.windows1251 ? { windows1251: true } : {}),
-				...(form.allowDirty ? { allowDirty: true } : {}),
-				...(lines(form.include) === undefined ? {} : { include: lines(form.include) }),
-				...(lines(form.exclude) === undefined ? {} : { exclude: lines(form.exclude) }),
-			}
-			emit('started', await api.startIndex(input))
-		} catch (reason: unknown) {
-			error.value = reason instanceof Error ? reason.message : String(reason)
-		} finally {
-			submitting.value = false
-		}
-	}
-</script>
-
 <template>
 	<BaseModal
 		title="Index a project"
@@ -233,3 +167,69 @@
 		</form>
 	</BaseModal>
 </template>
+
+<script setup lang="ts">
+	import { computed, reactive, ref } from 'vue'
+	import { FolderSearch, LoaderCircle } from '@lucide/vue'
+
+	import type { IndexProjectInput, IndexingJob, ProviderProfile } from '../../../shared/contracts'
+	import { api } from '../../shared/api/client'
+	import BaseModal from '../../shared/components/BaseModal.vue'
+
+	const props = defineProps<{
+		profiles: readonly ProviderProfile[]
+	}>()
+
+	const emit = defineEmits<{
+		close: []
+		started: [job: IndexingJob]
+	}>()
+
+	const form = reactive({
+		root: '',
+		profile: props.profiles[0]?.name ?? '',
+		target: '',
+		keepReplacedBuilds: 1,
+		maximumChunkSize: 3000,
+		windows1251: false,
+		allowDirty: false,
+		include: '',
+		exclude: '',
+	})
+	const advanced = ref(false)
+	const submitting = ref(false)
+	const error = ref('')
+
+	const canSubmit = computed(() => form.root.trim().length > 0 && form.profile.length > 0 && !submitting.value)
+
+	function lines(value: string): string[] | undefined {
+		const items = value
+			.split('\n')
+			.map((item) => item.trim())
+			.filter(Boolean)
+		return items.length === 0 ? undefined : items
+	}
+
+	async function submit(): Promise<void> {
+		submitting.value = true
+		error.value = ''
+		try {
+			const input: IndexProjectInput = {
+				root: form.root.trim(),
+				profile: form.profile,
+				keepReplacedBuilds: form.keepReplacedBuilds,
+				maximumChunkSize: form.maximumChunkSize,
+				...(form.target.trim() ? { target: form.target.trim() } : {}),
+				...(form.windows1251 ? { windows1251: true } : {}),
+				...(form.allowDirty ? { allowDirty: true } : {}),
+				...(lines(form.include) === undefined ? {} : { include: lines(form.include) }),
+				...(lines(form.exclude) === undefined ? {} : { exclude: lines(form.exclude) }),
+			}
+			emit('started', await api.startIndex(input))
+		} catch (reason: unknown) {
+			error.value = reason instanceof Error ? reason.message : String(reason)
+		} finally {
+			submitting.value = false
+		}
+	}
+</script>
