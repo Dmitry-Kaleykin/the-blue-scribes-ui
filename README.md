@@ -8,6 +8,14 @@ The UI binds only to `127.0.0.1`, checks the request host and origin, and does n
 send project files to a browser service. LM Studio remains the only model
 provider contacted by the core.
 
+The source is divided by runtime boundary:
+
+```text
+client/  Vue application
+server/  Local HTTP API
+shared/  Contracts used by both runtimes
+```
+
 ## Development
 
 The core project must exist beside this repository:
