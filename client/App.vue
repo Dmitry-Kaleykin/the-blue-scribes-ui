@@ -47,6 +47,7 @@
 			<div class="sidebar__section">
 				<p>Projects</p>
 				<button
+					v-if="data.projects.length > 0"
 					v-for="project in data.projects.slice(0, 7)"
 					:key="project.projectIdentifier"
 					class="project-link"
@@ -61,7 +62,7 @@
 					<i v-if="project.active" />
 				</button>
 				<span
-					v-if="data.projects.length === 0"
+					v-else
 					class="sidebar__empty"
 					>No indexes yet</span
 				>
@@ -197,22 +198,12 @@
 			@saved="profileSaved"
 		/>
 
-		<div
+		<Toast
 			v-if="toast"
-			class="toast"
-			:class="`toast--${toast.tone}`"
-			role="status"
-		>
-			<span />
-			{{ toast.message }}
-			<button
-				type="button"
-				aria-label="Dismiss notification"
-				@click="toast = undefined"
-			>
-				<X :size="16" />
-			</button>
-		</div>
+			:tone="toast.tone"
+			:message="toast.message"
+			@close="dismissToast"
+		/>
 	</div>
 </template>
 
@@ -238,7 +229,9 @@
 	import ProfilesPage from './pages/profiles/ProfilesPage.vue';
 	import ProjectPage from './pages/project/ProjectPage.vue';
 	import SearchPage from './pages/search/SearchPage.vue';
+	import Toast from './shared/components/Toast.vue';
 	import { api, subscribeToJob } from './shared/api/client';
+	import { useToast } from './shared/composables/useToast';
 
 	type View = 'dashboard' | 'profiles' | 'search' | 'project';
 
@@ -257,9 +250,8 @@
 	const indexModal = ref(false);
 	const profileModal = ref(false);
 	const editingProfile = ref<ProviderProfile>();
-	const toast = ref<{ tone: 'success' | 'danger'; message: string }>();
 	const subscriptions = new Map<string, () => void>();
-	let toastTimer: ReturnType<typeof setTimeout> | undefined;
+	const { toast, showToast, dismissToast } = useToast();
 
 	const selectedProject = computed(() =>
 		data.value.projects.find(({ projectIdentifier }) => projectIdentifier === selectedProjectId.value),
@@ -272,9 +264,6 @@
 	onUnmounted(() => {
 		for (const unsubscribe of subscriptions.values()) {
 			unsubscribe();
-		}
-		if (toastTimer) {
-			clearTimeout(toastTimer);
 		}
 	});
 
@@ -464,16 +453,6 @@
 
 	function showFailure(reason: unknown): void {
 		showToast('danger', reason instanceof Error ? reason.message : String(reason));
-	}
-
-	function showToast(tone: 'success' | 'danger', message: string): void {
-		toast.value = { tone, message };
-		if (toastTimer) {
-			clearTimeout(toastTimer);
-		}
-		toastTimer = setTimeout(() => {
-			toast.value = undefined;
-		}, 5000);
 	}
 </script>
 
@@ -692,52 +671,6 @@
 		margin-right: auto;
 	}
 
-	.toast {
-		position: fixed;
-		z-index: 150;
-		right: 24px;
-		bottom: 24px;
-		display: flex;
-		max-width: min(460px, calc(100vw - 48px));
-		align-items: center;
-		gap: 10px;
-		padding: 13px 14px;
-		color: var(--ink);
-		background: var(--paper);
-		border: 1px solid var(--line);
-		border-left-width: 4px;
-		border-radius: 7px;
-		box-shadow: var(--shadow);
-		font-size: 0.73rem;
-	}
-
-	.toast--success {
-		border-left-color: var(--teal);
-	}
-
-	.toast--danger {
-		border-left-color: var(--danger);
-	}
-
-	.toast > span {
-		width: 7px;
-		height: 7px;
-		background: var(--teal);
-		border-radius: 50%;
-	}
-
-	.toast--danger > span {
-		background: var(--danger);
-	}
-
-	.toast button {
-		display: grid;
-		margin-left: auto;
-		padding: 3px;
-		color: var(--muted);
-		background: transparent;
-		border: 0;
-	}
 
 	.app-loading,
 	.app-error {
