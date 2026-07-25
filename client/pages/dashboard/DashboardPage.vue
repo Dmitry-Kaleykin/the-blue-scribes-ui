@@ -95,17 +95,13 @@
 					:key="project.projectIdentifier"
 					class="project-row"
 				>
-					<button
-						class="project-row__identity"
-						type="button"
-						@click="emit('project', project)"
-					>
+					<div class="project-row__identity">
 						<span class="project-mark"><FolderCode :size="20" /></span>
 						<span>
 							<strong>{{ projectName(project) }}</strong>
 							<small>{{ projectSubtitle(project) }}</small>
 						</span>
-					</button>
+					</div>
 					<div>
 						<StatusPill
 							v-if="project.active"
@@ -302,10 +298,6 @@
 		min-width: 0;
 		align-items: center;
 		gap: 12px;
-		padding: 0;
-		text-align: left;
-		background: transparent;
-		border: 0;
 	}
 
 	.project-row__identity > span:last-child,
