@@ -8,7 +8,7 @@ const development = process.argv.includes('--dev');
 const app = await createApp({ development });
 const address = await app.listen({
 	host: '127.0.0.1',
-	port: development ? 43_110 : Number(process.env.SCRIBES_UI_PORT ?? 0),
+	port: development ? 43_110 : Number(process.env.SCRIBES_UI_PORT ?? 43_110),
 });
 
 console.log(`The Blue Scribes UI is available at ${address}`);
