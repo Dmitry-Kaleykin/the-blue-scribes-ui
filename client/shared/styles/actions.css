@@ -70,6 +70,10 @@
 	gap: 8px;
 }
 
+.button svg {
+    flex-shrink: 0;
+}
+
 .icon-button {
 	display: inline-grid;
 	width: 36px;
