@@ -6,7 +6,9 @@ export function record(value: unknown, label = 'request body'): Record<string, u
 }
 
 export function text(value: unknown, label: string, options: { optional?: boolean } = {}): string | undefined {
-	if (value === undefined && options.optional === true) return undefined;
+	if (value === undefined && options.optional === true) {
+		return undefined;
+	}
 	if (typeof value !== 'string' || value.trim().length === 0) {
 		throw new Error(`${label} must not be empty`);
 	}
@@ -18,7 +20,9 @@ export function integer(
 	label: string,
 	options: { optional?: boolean; minimum?: number } = {},
 ): number | undefined {
-	if (value === undefined && options.optional === true) return undefined;
+	if (value === undefined && options.optional === true) {
+		return undefined;
+	}
 	const parsed = typeof value === 'number' ? value : Number(value);
 	if (!Number.isSafeInteger(parsed) || parsed < (options.minimum ?? 0)) {
 		throw new Error(`${label} must be an integer of at least ${options.minimum ?? 0}`);
@@ -27,13 +31,19 @@ export function integer(
 }
 
 export function boolean(value: unknown, label: string, options: { optional?: boolean } = {}): boolean | undefined {
-	if (value === undefined && options.optional === true) return undefined;
-	if (typeof value !== 'boolean') throw new Error(`${label} must be a boolean`);
+	if (value === undefined && options.optional === true) {
+		return undefined;
+	}
+	if (typeof value !== 'boolean') {
+		throw new Error(`${label} must be a boolean`);
+	}
 	return value;
 }
 
 export function stringList(value: unknown, label: string): readonly string[] | undefined {
-	if (value === undefined) return undefined;
+	if (value === undefined) {
+		return undefined;
+	}
 	if (!Array.isArray(value) || value.some((entry) => typeof entry !== 'string' || entry.trim().length === 0)) {
 		throw new Error(`${label} must be a list of non-empty strings`);
 	}

@@ -270,8 +270,12 @@
 
 	onMounted(load);
 	onUnmounted(() => {
-		for (const unsubscribe of subscriptions.values()) unsubscribe();
-		if (toastTimer) clearTimeout(toastTimer);
+		for (const unsubscribe of subscriptions.values()) {
+			unsubscribe();
+		}
+		if (toastTimer) {
+			clearTimeout(toastTimer);
+		}
 	});
 
 	async function load(): Promise<void> {
@@ -280,7 +284,9 @@
 		try {
 			data.value = await api.bootstrap();
 			for (const job of data.value.jobs) {
-				if (job.status === 'running' || job.status === 'queued') watchJob(job.id);
+				if (job.status === 'running' || job.status === 'queued') {
+					watchJob(job.id);
+				}
 			}
 			if (activeView.value === 'project' && !selectedProject.value) {
 				activeView.value = 'dashboard';
@@ -314,15 +320,20 @@
 	}
 
 	function watchJob(id: string): void {
-		if (subscriptions.has(id)) return;
+		if (subscriptions.has(id)) {
+			return;
+		}
 		subscriptions.set(
 			id,
 			subscribeToJob(id, (event) => {
 				const value = event as { job?: IndexingJob };
-				if (!value.job) return;
+				if (!value.job) {
+					return;
+				}
 				const index = data.value.jobs.findIndex((job) => job.id === value.job!.id);
-				if (index === -1) data.value = { ...data.value, jobs: [value.job, ...data.value.jobs] };
-				else {
+				if (index === -1) {
+					data.value = { ...data.value, jobs: [value.job, ...data.value.jobs] };
+				} else {
 					const jobs = [...data.value.jobs];
 					jobs[index] = value.job;
 					data.value = { ...data.value, jobs };
@@ -381,8 +392,9 @@
 			!window.confirm(
 				`Delete provider profile "${profile.name}"? Existing recipes that refer to it will need another profile.`,
 			)
-		)
+		) {
 			return;
+		}
 		try {
 			await api.deleteProfile(profile.name);
 			await load();
@@ -393,7 +405,9 @@
 	}
 
 	async function reindexProject(): Promise<void> {
-		if (!selectedProject.value) return;
+		if (!selectedProject.value) {
+			return;
+		}
 		try {
 			const job = await api.reindex(selectedProject.value.projectIdentifier);
 			jobStarted(job);
@@ -403,7 +417,9 @@
 	}
 
 	async function activateTarget(target: string): Promise<void> {
-		if (!selectedProject.value) return;
+		if (!selectedProject.value) {
+			return;
+		}
 		try {
 			await api.activateTarget(selectedProject.value.projectIdentifier, target);
 			await load();
@@ -414,7 +430,9 @@
 	}
 
 	async function renameTarget(target: string, name: string): Promise<void> {
-		if (!selectedProject.value) return;
+		if (!selectedProject.value) {
+			return;
+		}
 		try {
 			await api.renameTarget(selectedProject.value.projectIdentifier, target, name);
 			await load();
@@ -426,9 +444,13 @@
 
 	async function removeProject(): Promise<void> {
 		const project = selectedProject.value;
-		if (!project) return;
+		if (!project) {
+			return;
+		}
 		const label = project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier;
-		if (!window.confirm(`Delete the managed index for "${label}"? The source project will not be changed.`)) return;
+		if (!window.confirm(`Delete the managed index for "${label}"? The source project will not be changed.`)) {
+			return;
+		}
 		try {
 			await api.deleteProject(project.projectIdentifier);
 			selectedProjectId.value = '';
@@ -446,7 +468,9 @@
 
 	function showToast(tone: 'success' | 'danger', message: string): void {
 		toast.value = { tone, message };
-		if (toastTimer) clearTimeout(toastTimer);
+		if (toastTimer) {
+			clearTimeout(toastTimer);
+		}
 		toastTimer = setTimeout(() => {
 			toast.value = undefined;
 		}, 5000);

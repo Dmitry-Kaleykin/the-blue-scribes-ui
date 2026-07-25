@@ -315,7 +315,9 @@
 	}
 
 	function formatDate(value?: string): string {
-		if (!value) return '—';
+		if (!value) {
+			return '—';
+		}
 		return new Intl.DateTimeFormat(undefined, {
 			dateStyle: 'medium',
 			timeStyle: 'short',

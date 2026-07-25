@@ -5,7 +5,9 @@ export interface SerializedError {
 }
 
 export function serializeError(error: unknown): SerializedError {
-	if (!(error instanceof Error)) return { message: String(error) };
+	if (!(error instanceof Error)) {
+		return { message: String(error) };
+	}
 	const metadata = error as Error & {
 		code?: unknown;
 		details?: unknown;

@@ -70,7 +70,11 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
 
 function statusFor(error: unknown): number {
 	const message = error instanceof Error ? error.message : String(error);
-	if (/was not found|no saved indexing recipe/u.test(message)) return 404;
-	if (/already running|already exists/u.test(message)) return 409;
+	if (/was not found|no saved indexing recipe/u.test(message)) {
+		return 404;
+	}
+	if (/already running|already exists/u.test(message)) {
+		return 409;
+	}
 	return 400;
 }

@@ -147,7 +147,9 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 		const send = (event: unknown) => {
 			reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
 		};
-		for (const event of options.jobs.events(id)) send(event);
+		for (const event of options.jobs.events(id)) {
+			send(event);
+		}
 		const unsubscribe = options.jobs.subscribe(id, send);
 		const heartbeat = setInterval(() => reply.raw.write(': keep-alive\n\n'), 15_000);
 		request.raw.on('close', () => {
@@ -160,7 +162,9 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 		const params = record(request.params, 'parameters');
 		const id = text(params.id, 'project')!;
 		const project = (await listIndexedProjects()).find(({ projectIdentifier }) => projectIdentifier === id);
-		if (project === undefined) throw new Error(`Indexed project ${id} was not found`);
+		if (project === undefined) {
+			throw new Error(`Indexed project ${id} was not found`);
+		}
 		const job = options.jobs.startReindex(id, project.root ?? id);
 		return reply.code(202).send(job);
 	});
@@ -257,7 +261,9 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 
 async function executablePath(name: string): Promise<string> {
 	for (const directory of (process.env.PATH ?? '').split(delimiter)) {
-		if (directory.length === 0) continue;
+		if (directory.length === 0) {
+			continue;
+		}
 		const candidate = join(directory, name);
 		try {
 			await access(candidate, constants.X_OK);

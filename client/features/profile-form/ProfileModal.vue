@@ -268,7 +268,9 @@
 	}
 
 	async function testSavedProfile(): Promise<void> {
-		if (!props.profile) return;
+		if (!props.profile) {
+			return;
+		}
 		testing.value = true;
 		message.value = '';
 		error.value = '';

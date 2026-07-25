@@ -102,7 +102,9 @@
 	const percent = computed(() => {
 		const completed = props.job.progress?.completed;
 		const total = props.job.progress?.total;
-		if (completed === undefined || total === undefined || total === 0) return undefined;
+		if (completed === undefined || total === undefined || total === 0) {
+			return undefined;
+		}
 		return Math.max(0, Math.min(100, Math.round((completed / total) * 100)));
 	});
 

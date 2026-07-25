@@ -295,7 +295,9 @@
 	watch(
 		() => props.initialProject,
 		(project) => {
-			if (project) form.project = project;
+			if (project) {
+				form.project = project;
+			}
 		},
 	);
 
@@ -322,7 +324,9 @@
 	}
 
 	async function submit(): Promise<void> {
-		if (!form.project || !form.query.trim()) return;
+		if (!form.project || !form.query.trim()) {
+			return;
+		}
 		searching.value = true;
 		error.value = '';
 		response.value = undefined;
@@ -348,8 +352,11 @@
 
 	function toggleResult(index: number): void {
 		const next = new Set(expandedResults.value);
-		if (next.has(index)) next.delete(index);
-		else next.add(index);
+		if (next.has(index)) {
+			next.delete(index);
+		} else {
+			next.add(index);
+		}
 		expandedResults.value = next;
 	}
 

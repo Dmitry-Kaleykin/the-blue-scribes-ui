@@ -125,7 +125,9 @@ export class IndexingJobRegistry {
 
 		try {
 			const outcome = await operation();
-			if (job.controller.signal.aborted) return;
+			if (job.controller.signal.aborted) {
+				return;
+			}
 			job.snapshot.status = 'completed';
 			job.snapshot.completedAt = new Date().toISOString();
 			job.snapshot.result = {
@@ -136,7 +138,9 @@ export class IndexingJobRegistry {
 			};
 			this.#publish(job, { type: 'job-completed', job: job.snapshot });
 		} catch (error: unknown) {
-			if (job.controller.signal.aborted) return;
+			if (job.controller.signal.aborted) {
+				return;
+			}
 			const failure = serializeError(error);
 			job.snapshot.status = failure.code === 'cancelled' ? 'cancelled' : 'failed';
 			job.snapshot.completedAt = new Date().toISOString();
@@ -155,7 +159,9 @@ export class IndexingJobRegistry {
 			const now = Date.now();
 			const phaseChanged = event.progress.phase !== job.previousPhase;
 			const complete = event.progress.total !== undefined && event.progress.completed === event.progress.total;
-			if (!phaseChanged && !complete && now - job.lastProgressAt < 200) return;
+			if (!phaseChanged && !complete && now - job.lastProgressAt < 200) {
+				return;
+			}
 			job.previousPhase = event.progress.phase;
 			job.lastProgressAt = now;
 		}
@@ -164,8 +170,12 @@ export class IndexingJobRegistry {
 
 	#publish(job: InternalJob, event: unknown): void {
 		job.events.push(event);
-		if (job.events.length > 500) job.events.shift();
-		for (const listener of job.listeners) listener(event);
+		if (job.events.length > 500) {
+			job.events.shift();
+		}
+		for (const listener of job.listeners) {
+			listener(event);
+		}
 	}
 
 	#assertAvailable(projectKey: string): void {
@@ -180,7 +190,9 @@ export class IndexingJobRegistry {
 
 	#required(id: string): InternalJob {
 		const job = this.#jobs.get(id);
-		if (job === undefined) throw new Error(`Indexing job ${id} was not found`);
+		if (job === undefined) {
+			throw new Error(`Indexing job ${id} was not found`);
+		}
 		return job;
 	}
 }

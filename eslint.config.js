@@ -33,4 +33,9 @@ export default typescriptEslint.config(
 		},
 	},
 	eslintConfigPrettier,
+	{
+		rules: {
+			curly: ['error', 'all'],
+		},
+	},
 );
