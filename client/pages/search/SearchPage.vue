@@ -383,7 +383,7 @@
 
 	.search-box {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: 12px;
 		padding: 10px 10px 10px 15px;
 		background: #f8f8f5;
@@ -399,7 +399,7 @@
 	.search-box textarea {
 		min-height: 44px;
 		flex: 1;
-		padding: 9px 0;
+		padding: 0;
 		resize: vertical;
 		color: var(--ink);
 		background: transparent;
@@ -564,7 +564,6 @@
 		}
 
 		.search-box {
-			align-items: stretch;
 			flex-wrap: wrap;
 		}
 
