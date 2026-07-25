@@ -8,7 +8,7 @@ import type {
 	ProviderProfile,
 	SearchInput,
 	SearchResponse,
-} from '../../../shared/contracts'
+} from '../../../shared/contracts';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	const response = await fetch(path, {
@@ -17,20 +17,20 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 			...(options.body === undefined ? {} : { 'content-type': 'application/json' }),
 			...options.headers,
 		},
-	})
-	const payload = (await response.json()) as T | ApiError
+	});
+	const payload = (await response.json()) as T | ApiError;
 	if (!response.ok) {
-		const failure = payload as ApiError
-		throw new Error(failure.error?.message ?? `Request failed with ${response.status}`)
+		const failure = payload as ApiError;
+		throw new Error(failure.error?.message ?? `Request failed with ${response.status}`);
 	}
-	return payload as T
+	return payload as T;
 }
 
 export const api = {
 	bootstrap: () => request<BootstrapResponse>('/api/bootstrap'),
 	models: async (baseUrl?: string) => {
-		const query = baseUrl === undefined ? '' : `?baseUrl=${encodeURIComponent(baseUrl)}`
-		return request<{ count: number; models: readonly ModelSummary[] }>(`/api/models${query}`)
+		const query = baseUrl === undefined ? '' : `?baseUrl=${encodeURIComponent(baseUrl)}`;
+		return request<{ count: number; models: readonly ModelSummary[] }>(`/api/models${query}`);
 	},
 	saveProfile: (input: ProfileInput) =>
 		request<ProviderProfile>('/api/profiles', {
@@ -39,9 +39,9 @@ export const api = {
 		}),
 	testProfile: (name: string) =>
 		request<{
-			profile: string
-			embedding: { model: string; dimensions: number }
-			reranking?: { model: string; score: number }
+			profile: string;
+			embedding: { model: string; dimensions: number };
+			reranking?: { model: string; score: number };
 		}>(`/api/profiles/${encodeURIComponent(name)}/test`, { method: 'POST' }),
 	deleteProfile: (name: string) => request(`/api/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' }),
 	startIndex: (input: IndexProjectInput) =>
@@ -62,14 +62,14 @@ export const api = {
 		}),
 	chunks: (projectIdentifier: string, path: string) =>
 		request<{
-			indexBuildId: string
+			indexBuildId: string;
 			chunks: {
-				document: { metadata: Record<string, unknown> }
+				document: { metadata: Record<string, unknown> };
 				chunks: ReadonlyArray<{
-					content: string
-					metadata: Record<string, unknown>
-				}>
-			}
+					content: string;
+					metadata: Record<string, unknown>;
+				}>;
+			};
 		}>(`/api/projects/${encodeURIComponent(projectIdentifier)}/chunks` + `?path=${encodeURIComponent(path)}`),
 	activateTarget: (projectIdentifier: string, target: string) =>
 		request(
@@ -85,15 +85,15 @@ export const api = {
 		request(`/api/projects/${encodeURIComponent(projectIdentifier)}`, {
 			method: 'DELETE',
 		}),
-}
+};
 
 export function subscribeToJob(id: string, onEvent: (event: unknown) => void): () => void {
-	const source = new EventSource(`/api/indexing-jobs/${encodeURIComponent(id)}/events`)
+	const source = new EventSource(`/api/indexing-jobs/${encodeURIComponent(id)}/events`);
 	source.onmessage = ({ data }) => {
-		onEvent(JSON.parse(data) as unknown)
-	}
+		onEvent(JSON.parse(data) as unknown);
+	};
 	source.onerror = () => {
-		source.close()
-	}
-	return () => source.close()
+		source.close();
+	};
+	return () => source.close();
 }

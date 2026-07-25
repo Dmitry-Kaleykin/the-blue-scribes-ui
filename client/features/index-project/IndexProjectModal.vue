@@ -169,21 +169,21 @@
 </template>
 
 <script setup lang="ts">
-	import { computed, reactive, ref } from 'vue'
-	import { FolderSearch, LoaderCircle } from '@lucide/vue'
+	import { computed, reactive, ref } from 'vue';
+	import { FolderSearch, LoaderCircle } from '@lucide/vue';
 
-	import type { IndexProjectInput, IndexingJob, ProviderProfile } from '../../../shared/contracts'
-	import { api } from '../../shared/api/client'
-	import BaseModal from '../../shared/components/BaseModal.vue'
+	import type { IndexProjectInput, IndexingJob, ProviderProfile } from '../../../shared/contracts';
+	import { api } from '../../shared/api/client';
+	import BaseModal from '../../shared/components/BaseModal.vue';
 
 	const props = defineProps<{
-		profiles: readonly ProviderProfile[]
-	}>()
+		profiles: readonly ProviderProfile[];
+	}>();
 
 	const emit = defineEmits<{
-		close: []
-		started: [job: IndexingJob]
-	}>()
+		close: [];
+		started: [job: IndexingJob];
+	}>();
 
 	const form = reactive({
 		root: '',
@@ -195,24 +195,24 @@
 		allowDirty: false,
 		include: '',
 		exclude: '',
-	})
-	const advanced = ref(false)
-	const submitting = ref(false)
-	const error = ref('')
+	});
+	const advanced = ref(false);
+	const submitting = ref(false);
+	const error = ref('');
 
-	const canSubmit = computed(() => form.root.trim().length > 0 && form.profile.length > 0 && !submitting.value)
+	const canSubmit = computed(() => form.root.trim().length > 0 && form.profile.length > 0 && !submitting.value);
 
 	function lines(value: string): string[] | undefined {
 		const items = value
 			.split('\n')
 			.map((item) => item.trim())
-			.filter(Boolean)
-		return items.length === 0 ? undefined : items
+			.filter(Boolean);
+		return items.length === 0 ? undefined : items;
 	}
 
 	async function submit(): Promise<void> {
-		submitting.value = true
-		error.value = ''
+		submitting.value = true;
+		error.value = '';
 		try {
 			const input: IndexProjectInput = {
 				root: form.root.trim(),
@@ -224,12 +224,12 @@
 				...(form.allowDirty ? { allowDirty: true } : {}),
 				...(lines(form.include) === undefined ? {} : { include: lines(form.include) }),
 				...(lines(form.exclude) === undefined ? {} : { exclude: lines(form.exclude) }),
-			}
-			emit('started', await api.startIndex(input))
+			};
+			emit('started', await api.startIndex(input));
 		} catch (reason: unknown) {
-			error.value = reason instanceof Error ? reason.message : String(reason)
+			error.value = reason instanceof Error ? reason.message : String(reason);
 		} finally {
-			submitting.value = false
+			submitting.value = false;
 		}
 	}
 </script>

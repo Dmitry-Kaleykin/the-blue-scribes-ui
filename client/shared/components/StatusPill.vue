@@ -10,9 +10,9 @@
 
 <script setup lang="ts">
 	defineProps<{
-		tone?: 'success' | 'warning' | 'danger' | 'neutral' | 'info'
-		label: string
-	}>()
+		tone?: 'success' | 'warning' | 'danger' | 'neutral' | 'info';
+		label: string;
+	}>();
 </script>
 
 <style scoped>

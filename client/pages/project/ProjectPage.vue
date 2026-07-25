@@ -227,7 +227,7 @@
 </template>
 
 <script setup lang="ts">
-	import { computed, ref } from 'vue'
+	import { computed, ref } from 'vue';
 	import {
 		ArrowLeft,
 		Check,
@@ -240,34 +240,34 @@
 		Search,
 		TerminalSquare,
 		Trash2,
-	} from '@lucide/vue'
+	} from '@lucide/vue';
 
-	import type { ProjectSummary } from '../../../shared/contracts'
-	import StatusPill from '../../shared/components/StatusPill.vue'
+	import type { ProjectSummary } from '../../../shared/contracts';
+	import StatusPill from '../../shared/components/StatusPill.vue';
 
 	const props = defineProps<{
-		project: ProjectSummary
-		mcpCommand?: string
-	}>()
+		project: ProjectSummary;
+		mcpCommand?: string;
+	}>();
 
 	const emit = defineEmits<{
-		back: []
-		search: []
-		reindex: []
-		activate: [target: string]
-		rename: [target: string, name: string]
-		remove: []
-	}>()
+		back: [];
+		search: [];
+		reindex: [];
+		activate: [target: string];
+		rename: [target: string, name: string];
+		remove: [];
+	}>();
 
-	const copied = ref(false)
-	const editingTarget = ref('')
-	const targetName = ref('')
+	const copied = ref(false);
+	const editingTarget = ref('');
+	const targetName = ref('');
 
-	const name = computed(() => props.project.root?.split('/').filter(Boolean).at(-1) ?? props.project.projectIdentifier)
+	const name = computed(() => props.project.root?.split('/').filter(Boolean).at(-1) ?? props.project.projectIdentifier);
 	const recipeProfile = computed(() => {
-		const provider = props.project.recipe?.provider
-		return provider?.type === 'profile' ? provider.profile : undefined
-	})
+		const provider = props.project.recipe?.provider;
+		return provider?.type === 'profile' ? provider.profile : undefined;
+	});
 	const mcpConfig = computed(() =>
 		JSON.stringify(
 			{
@@ -289,37 +289,37 @@
 			null,
 			2,
 		),
-	)
+	);
 
 	function editTarget(target: string): void {
-		editingTarget.value = target
-		targetName.value = target
+		editingTarget.value = target;
+		targetName.value = target;
 	}
 
 	function saveTarget(): void {
-		const next = targetName.value.trim()
+		const next = targetName.value.trim();
 		if (!editingTarget.value || !next || next === editingTarget.value) {
-			editingTarget.value = ''
-			return
+			editingTarget.value = '';
+			return;
 		}
-		emit('rename', editingTarget.value, next)
-		editingTarget.value = ''
+		emit('rename', editingTarget.value, next);
+		editingTarget.value = '';
 	}
 
 	async function copyConfig(): Promise<void> {
-		await navigator.clipboard.writeText(mcpConfig.value)
-		copied.value = true
+		await navigator.clipboard.writeText(mcpConfig.value);
+		copied.value = true;
 		setTimeout(() => {
-			copied.value = false
-		}, 1800)
+			copied.value = false;
+		}, 1800);
 	}
 
 	function formatDate(value?: string): string {
-		if (!value) return '—'
+		if (!value) return '—';
 		return new Intl.DateTimeFormat(undefined, {
 			dateStyle: 'medium',
 			timeStyle: 'short',
-		}).format(new Date(value))
+		}).format(new Date(value));
 	}
 </script>
 

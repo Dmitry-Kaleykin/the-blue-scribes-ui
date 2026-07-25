@@ -217,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-	import { computed, onMounted, onUnmounted, ref } from 'vue'
+	import { computed, onMounted, onUnmounted, ref } from 'vue';
 	import {
 		BookOpenText,
 		FolderCode,
@@ -229,150 +229,150 @@
 		Search,
 		Server,
 		X,
-	} from '@lucide/vue'
+	} from '@lucide/vue';
 
-	import type { BootstrapResponse, IndexingJob, ProjectSummary, ProviderProfile } from '../shared/contracts'
-	import IndexProjectModal from './features/index-project/IndexProjectModal.vue'
-	import ProfileModal from './features/profile-form/ProfileModal.vue'
-	import DashboardPage from './pages/dashboard/DashboardPage.vue'
-	import ProfilesPage from './pages/profiles/ProfilesPage.vue'
-	import ProjectPage from './pages/project/ProjectPage.vue'
-	import SearchPage from './pages/search/SearchPage.vue'
-	import { api, subscribeToJob } from './shared/api/client'
+	import type { BootstrapResponse, IndexingJob, ProjectSummary, ProviderProfile } from '../shared/contracts';
+	import IndexProjectModal from './features/index-project/IndexProjectModal.vue';
+	import ProfileModal from './features/profile-form/ProfileModal.vue';
+	import DashboardPage from './pages/dashboard/DashboardPage.vue';
+	import ProfilesPage from './pages/profiles/ProfilesPage.vue';
+	import ProjectPage from './pages/project/ProjectPage.vue';
+	import SearchPage from './pages/search/SearchPage.vue';
+	import { api, subscribeToJob } from './shared/api/client';
 
-	type View = 'dashboard' | 'profiles' | 'search' | 'project'
+	type View = 'dashboard' | 'profiles' | 'search' | 'project';
 
 	const data = ref<BootstrapResponse>({
 		profiles: [],
 		projects: [],
 		jobs: [],
 		environment: { mcpCommand: 'scribes-mcp' },
-	})
-	const activeView = ref<View>('dashboard')
-	const selectedProjectId = ref('')
-	const initialSearchProject = ref('')
-	const loading = ref(true)
-	const loadError = ref('')
-	const mobileMenu = ref(false)
-	const indexModal = ref(false)
-	const profileModal = ref(false)
-	const editingProfile = ref<ProviderProfile>()
-	const toast = ref<{ tone: 'success' | 'danger'; message: string }>()
-	const subscriptions = new Map<string, () => void>()
-	let toastTimer: ReturnType<typeof setTimeout> | undefined
+	});
+	const activeView = ref<View>('dashboard');
+	const selectedProjectId = ref('');
+	const initialSearchProject = ref('');
+	const loading = ref(true);
+	const loadError = ref('');
+	const mobileMenu = ref(false);
+	const indexModal = ref(false);
+	const profileModal = ref(false);
+	const editingProfile = ref<ProviderProfile>();
+	const toast = ref<{ tone: 'success' | 'danger'; message: string }>();
+	const subscriptions = new Map<string, () => void>();
+	let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
 	const selectedProject = computed(() =>
 		data.value.projects.find(({ projectIdentifier }) => projectIdentifier === selectedProjectId.value),
-	)
+	);
 	const activeJobCount = computed(
 		() => data.value.jobs.filter(({ status }) => status === 'running' || status === 'queued').length,
-	)
+	);
 
-	onMounted(load)
+	onMounted(load);
 	onUnmounted(() => {
-		for (const unsubscribe of subscriptions.values()) unsubscribe()
-		if (toastTimer) clearTimeout(toastTimer)
-	})
+		for (const unsubscribe of subscriptions.values()) unsubscribe();
+		if (toastTimer) clearTimeout(toastTimer);
+	});
 
 	async function load(): Promise<void> {
-		loading.value = data.value.projects.length === 0 && data.value.profiles.length === 0
-		loadError.value = ''
+		loading.value = data.value.projects.length === 0 && data.value.profiles.length === 0;
+		loadError.value = '';
 		try {
-			data.value = await api.bootstrap()
+			data.value = await api.bootstrap();
 			for (const job of data.value.jobs) {
-				if (job.status === 'running' || job.status === 'queued') watchJob(job.id)
+				if (job.status === 'running' || job.status === 'queued') watchJob(job.id);
 			}
 			if (activeView.value === 'project' && !selectedProject.value) {
-				activeView.value = 'dashboard'
+				activeView.value = 'dashboard';
 			}
 		} catch (reason: unknown) {
-			loadError.value = reason instanceof Error ? reason.message : String(reason)
+			loadError.value = reason instanceof Error ? reason.message : String(reason);
 		} finally {
-			loading.value = false
+			loading.value = false;
 		}
 	}
 
 	function navigate(view: View): void {
-		activeView.value = view
-		mobileMenu.value = false
-		window.scrollTo({ top: 0, behavior: 'smooth' })
+		activeView.value = view;
+		mobileMenu.value = false;
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
 	function openProject(project: ProjectSummary): void {
-		selectedProjectId.value = project.projectIdentifier
-		navigate('project')
+		selectedProjectId.value = project.projectIdentifier;
+		navigate('project');
 	}
 
 	function openSearch(project?: ProjectSummary): void {
-		initialSearchProject.value = project?.projectIdentifier ?? selectedProjectId.value
-		navigate('search')
+		initialSearchProject.value = project?.projectIdentifier ?? selectedProjectId.value;
+		navigate('search');
 	}
 
 	function openProfile(profile?: ProviderProfile): void {
-		editingProfile.value = profile
-		profileModal.value = true
+		editingProfile.value = profile;
+		profileModal.value = true;
 	}
 
 	function watchJob(id: string): void {
-		if (subscriptions.has(id)) return
+		if (subscriptions.has(id)) return;
 		subscriptions.set(
 			id,
 			subscribeToJob(id, (event) => {
-				const value = event as { job?: IndexingJob }
-				if (!value.job) return
-				const index = data.value.jobs.findIndex((job) => job.id === value.job!.id)
-				if (index === -1) data.value = { ...data.value, jobs: [value.job, ...data.value.jobs] }
+				const value = event as { job?: IndexingJob };
+				if (!value.job) return;
+				const index = data.value.jobs.findIndex((job) => job.id === value.job!.id);
+				if (index === -1) data.value = { ...data.value, jobs: [value.job, ...data.value.jobs] };
 				else {
-					const jobs = [...data.value.jobs]
-					jobs[index] = value.job
-					data.value = { ...data.value, jobs }
+					const jobs = [...data.value.jobs];
+					jobs[index] = value.job;
+					data.value = { ...data.value, jobs };
 				}
 				if (value.job.status === 'completed' || value.job.status === 'failed' || value.job.status === 'cancelled') {
-					subscriptions.get(id)?.()
-					subscriptions.delete(id)
+					subscriptions.get(id)?.();
+					subscriptions.delete(id);
 					showToast(
 						value.job.status === 'completed' ? 'success' : 'danger',
 						value.job.status === 'completed'
 							? `${value.job.label} was indexed successfully.`
 							: (value.job.error?.message ?? `Indexing ${value.job.status}.`),
-					)
-					void load()
+					);
+					void load();
 				}
 			}),
-		)
+		);
 	}
 
 	function jobStarted(job: IndexingJob): void {
-		data.value = { ...data.value, jobs: [job, ...data.value.jobs] }
-		indexModal.value = false
-		watchJob(job.id)
-		showToast('success', 'Indexing started. You can keep using the UI while it runs.')
-		navigate('dashboard')
+		data.value = { ...data.value, jobs: [job, ...data.value.jobs] };
+		indexModal.value = false;
+		watchJob(job.id);
+		showToast('success', 'Indexing started. You can keep using the UI while it runs.');
+		navigate('dashboard');
 	}
 
 	async function cancelJob(id: string): Promise<void> {
 		try {
-			await api.cancelJob(id)
+			await api.cancelJob(id);
 		} catch (reason: unknown) {
-			showFailure(reason)
+			showFailure(reason);
 		}
 	}
 
 	async function profileSaved(profile: ProviderProfile): Promise<void> {
-		profileModal.value = false
-		editingProfile.value = undefined
-		await load()
-		showToast('success', `Profile ${profile.name} was saved.`)
+		profileModal.value = false;
+		editingProfile.value = undefined;
+		await load();
+		showToast('success', `Profile ${profile.name} was saved.`);
 	}
 
 	async function testProfile(profile: ProviderProfile): Promise<void> {
-		showToast('success', `Testing ${profile.name} against LM Studio…`)
+		showToast('success', `Testing ${profile.name} against LM Studio…`);
 		try {
-			const result = await api.testProfile(profile.name)
-			const reranking = result.reranking ? ` Reranker score: ${result.reranking.score.toFixed(3)}.` : ''
-			showToast('success', `${result.embedding.model} returned ${result.embedding.dimensions} dimensions.${reranking}`)
+			const result = await api.testProfile(profile.name);
+			const reranking = result.reranking ? ` Reranker score: ${result.reranking.score.toFixed(3)}.` : '';
+			showToast('success', `${result.embedding.model} returned ${result.embedding.dimensions} dimensions.${reranking}`);
 		} catch (reason: unknown) {
-			showFailure(reason)
+			showFailure(reason);
 		}
 	}
 
@@ -382,74 +382,74 @@
 				`Delete provider profile "${profile.name}"? Existing recipes that refer to it will need another profile.`,
 			)
 		)
-			return
+			return;
 		try {
-			await api.deleteProfile(profile.name)
-			await load()
-			showToast('success', `Profile ${profile.name} was deleted.`)
+			await api.deleteProfile(profile.name);
+			await load();
+			showToast('success', `Profile ${profile.name} was deleted.`);
 		} catch (reason: unknown) {
-			showFailure(reason)
+			showFailure(reason);
 		}
 	}
 
 	async function reindexProject(): Promise<void> {
-		if (!selectedProject.value) return
+		if (!selectedProject.value) return;
 		try {
-			const job = await api.reindex(selectedProject.value.projectIdentifier)
-			jobStarted(job)
+			const job = await api.reindex(selectedProject.value.projectIdentifier);
+			jobStarted(job);
 		} catch (reason: unknown) {
-			showFailure(reason)
+			showFailure(reason);
 		}
 	}
 
 	async function activateTarget(target: string): Promise<void> {
-		if (!selectedProject.value) return
+		if (!selectedProject.value) return;
 		try {
-			await api.activateTarget(selectedProject.value.projectIdentifier, target)
-			await load()
-			showToast('success', `Retrieval switched to ${target}.`)
+			await api.activateTarget(selectedProject.value.projectIdentifier, target);
+			await load();
+			showToast('success', `Retrieval switched to ${target}.`);
 		} catch (reason: unknown) {
-			showFailure(reason)
+			showFailure(reason);
 		}
 	}
 
 	async function renameTarget(target: string, name: string): Promise<void> {
-		if (!selectedProject.value) return
+		if (!selectedProject.value) return;
 		try {
-			await api.renameTarget(selectedProject.value.projectIdentifier, target, name)
-			await load()
-			showToast('success', `Target ${target} was renamed to ${name}.`)
+			await api.renameTarget(selectedProject.value.projectIdentifier, target, name);
+			await load();
+			showToast('success', `Target ${target} was renamed to ${name}.`);
 		} catch (reason: unknown) {
-			showFailure(reason)
+			showFailure(reason);
 		}
 	}
 
 	async function removeProject(): Promise<void> {
-		const project = selectedProject.value
-		if (!project) return
-		const label = project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier
-		if (!window.confirm(`Delete the managed index for "${label}"? The source project will not be changed.`)) return
+		const project = selectedProject.value;
+		if (!project) return;
+		const label = project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier;
+		if (!window.confirm(`Delete the managed index for "${label}"? The source project will not be changed.`)) return;
 		try {
-			await api.deleteProject(project.projectIdentifier)
-			selectedProjectId.value = ''
-			await load()
-			navigate('dashboard')
-			showToast('success', `The local index for ${label} was deleted.`)
+			await api.deleteProject(project.projectIdentifier);
+			selectedProjectId.value = '';
+			await load();
+			navigate('dashboard');
+			showToast('success', `The local index for ${label} was deleted.`);
 		} catch (reason: unknown) {
-			showFailure(reason)
+			showFailure(reason);
 		}
 	}
 
 	function showFailure(reason: unknown): void {
-		showToast('danger', reason instanceof Error ? reason.message : String(reason))
+		showToast('danger', reason instanceof Error ? reason.message : String(reason));
 	}
 
 	function showToast(tone: 'success' | 'danger', message: string): void {
-		toast.value = { tone, message }
-		if (toastTimer) clearTimeout(toastTimer)
+		toast.value = { tone, message };
+		if (toastTimer) clearTimeout(toastTimer);
 		toastTimer = setTimeout(() => {
-			toast.value = undefined
-		}, 5000)
+			toast.value = undefined;
+		}, 5000);
 	}
 </script>
 

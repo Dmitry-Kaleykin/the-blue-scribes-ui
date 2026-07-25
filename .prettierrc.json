@@ -1,7 +1,7 @@
 {
 	"useTabs": true,
 	"singleQuote": true,
-	"semi": false,
+	"semi": true,
 	"printWidth": 120,
 	"singleAttributePerLine": true,
 	"vueIndentScriptAndStyle": true

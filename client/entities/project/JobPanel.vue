@@ -85,26 +85,26 @@
 </template>
 
 <script setup lang="ts">
-	import { computed } from 'vue'
-	import { Ban, CheckCircle2, FileCode2, LoaderCircle, XCircle } from '@lucide/vue'
+	import { computed } from 'vue';
+	import { Ban, CheckCircle2, FileCode2, LoaderCircle, XCircle } from '@lucide/vue';
 
-	import type { IndexingJob } from '../../../shared/contracts'
-	import StatusPill from '../../shared/components/StatusPill.vue'
+	import type { IndexingJob } from '../../../shared/contracts';
+	import StatusPill from '../../shared/components/StatusPill.vue';
 
 	const props = defineProps<{
-		job: IndexingJob
-	}>()
+		job: IndexingJob;
+	}>();
 
 	const emit = defineEmits<{
-		cancel: [id: string]
-	}>()
+		cancel: [id: string];
+	}>();
 
 	const percent = computed(() => {
-		const completed = props.job.progress?.completed
-		const total = props.job.progress?.total
-		if (completed === undefined || total === undefined || total === 0) return undefined
-		return Math.max(0, Math.min(100, Math.round((completed / total) * 100)))
-	})
+		const completed = props.job.progress?.completed;
+		const total = props.job.progress?.total;
+		if (completed === undefined || total === undefined || total === 0) return undefined;
+		return Math.max(0, Math.min(100, Math.round((completed / total) * 100)));
+	});
 
 	const statusTone = computed(
 		() =>
@@ -115,9 +115,9 @@
 				failed: 'danger',
 				cancelled: 'warning',
 			})[props.job.status] as 'neutral' | 'info' | 'success' | 'danger' | 'warning',
-	)
+	);
 
-	const phase = computed(() => props.job.progress?.phase?.replaceAll('-', ' ') ?? props.job.status)
+	const phase = computed(() => props.job.progress?.phase?.replaceAll('-', ' ') ?? props.job.status);
 </script>
 
 <style scoped>

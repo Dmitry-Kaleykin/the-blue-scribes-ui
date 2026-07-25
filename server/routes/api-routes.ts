@@ -1,7 +1,7 @@
-import type { FastifyInstance } from 'fastify'
-import { constants } from 'node:fs'
-import { access } from 'node:fs/promises'
-import { delimiter, join } from 'node:path'
+import type { FastifyInstance } from 'fastify';
+import { constants } from 'node:fs';
+import { access } from 'node:fs/promises';
+import { delimiter, join } from 'node:path';
 
 import {
 	deleteIndexedProject,
@@ -11,7 +11,7 @@ import {
 	ProjectRetrievalTargetService,
 	ProjectSearchService,
 	ProviderProfileService,
-} from 'the-blue-scribes'
+} from 'the-blue-scribes';
 
 import type {
 	BootstrapResponse,
@@ -19,29 +19,29 @@ import type {
 	ProfileInput,
 	ProjectSummary,
 	SearchInput,
-} from '../../shared/contracts.js'
-import { IndexingJobRegistry } from '../modules/jobs/indexing-job-registry.js'
-import { boolean, integer, record, stringList, text } from '../shared/values.js'
+} from '../../shared/contracts.js';
+import { IndexingJobRegistry } from '../modules/jobs/indexing-job-registry.js';
+import { boolean, integer, record, stringList, text } from '../shared/values.js';
 
 export interface ApiRoutesOptions {
-	jobs: IndexingJobRegistry
+	jobs: IndexingJobRegistry;
 }
 
 export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutesOptions): Promise<void> {
 	const profiles = new ProviderProfileService({
 		...(process.env.LM_STUDIO_API_KEY === undefined ? {} : { apiKey: process.env.LM_STUDIO_API_KEY }),
-	})
-	const targets = new ProjectRetrievalTargetService()
-	const recipes = new ProjectIndexingRecipeCatalog()
+	});
+	const targets = new ProjectRetrievalTargetService();
+	const recipes = new ProjectIndexingRecipeCatalog();
 	const search = new ProjectSearchService({
 		...(process.env.LM_STUDIO_API_KEY === undefined ? {} : { apiKey: process.env.LM_STUDIO_API_KEY }),
-	})
-	const inspection = new ProjectInspectionService()
+	});
+	const inspection = new ProjectInspectionService();
 
 	app.get('/api/health', async () => ({
 		status: 'ready',
 		service: 'the-blue-scribes-ui',
-	}))
+	}));
 
 	app.get('/api/bootstrap', async (): Promise<BootstrapResponse> => ({
 		profiles: await profiles.list(),
@@ -50,37 +50,37 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 		environment: {
 			mcpCommand: await executablePath('scribes-mcp'),
 		},
-	}))
+	}));
 
 	app.get('/api/profiles', async () => {
-		const items = await profiles.list()
-		return { count: items.length, profiles: items }
-	})
+		const items = await profiles.list();
+		return { count: items.length, profiles: items };
+	});
 
 	app.get('/api/models', async (request) => {
-		const query = record(request.query, 'query')
-		const baseUrl = text(query.baseUrl, 'baseUrl', { optional: true })
-		const models = await profiles.listLmStudioModels(baseUrl)
-		return { count: models.length, models }
-	})
+		const query = record(request.query, 'query');
+		const baseUrl = text(query.baseUrl, 'baseUrl', { optional: true });
+		const models = await profiles.listLmStudioModels(baseUrl);
+		return { count: models.length, models };
+	});
 
 	app.post('/api/models/inspect', async (request) => {
-		const body = record(request.body)
+		const body = record(request.body);
 		return profiles.inspectLmStudioEmbeddingModel(
 			text(body.model, 'model')!,
 			text(body.baseUrl, 'baseUrl', { optional: true }),
 			typeof body.embeddingSuffix === 'string' ? body.embeddingSuffix : undefined,
-		)
-	})
+		);
+	});
 
 	app.post('/api/profiles', async (request) => {
-		const input = profileInput(request.body)
+		const input = profileInput(request.body);
 		const dimensions =
 			input.detectDimensions === true
 				? (await profiles.inspectLmStudioEmbeddingModel(input.model, input.baseUrl, input.embeddingSuffix)).dimensions
-				: input.dimensions
+				: input.dimensions;
 		if (dimensions === undefined) {
-			throw new Error('Dimensions are required when automatic detection is disabled')
+			throw new Error('Dimensions are required when automatic detection is disabled');
 		}
 		return profiles.set({
 			name: input.name,
@@ -102,75 +102,75 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 							...(input.rerankingInstruction === undefined ? {} : { instruction: input.rerankingInstruction }),
 						},
 					}),
-		})
-	})
+		});
+	});
 
 	app.post('/api/profiles/:name/test', async (request) => {
-		const params = record(request.params, 'parameters')
-		return profiles.diagnose(text(params.name, 'profile')!)
-	})
+		const params = record(request.params, 'parameters');
+		return profiles.diagnose(text(params.name, 'profile')!);
+	});
 
 	app.delete('/api/profiles/:name', async (request) => {
-		const params = record(request.params, 'parameters')
-		return profiles.remove(text(params.name, 'profile')!)
-	})
+		const params = record(request.params, 'parameters');
+		return profiles.remove(text(params.name, 'profile')!);
+	});
 
 	app.post('/api/indexing-jobs', async (request, reply) => {
-		const job = options.jobs.startIndex(indexProjectInput(request.body))
-		return reply.code(202).send(job)
-	})
+		const job = options.jobs.startIndex(indexProjectInput(request.body));
+		return reply.code(202).send(job);
+	});
 
 	app.get('/api/indexing-jobs', async () => ({
 		jobs: options.jobs.list(),
-	}))
+	}));
 
 	app.get('/api/indexing-jobs/:id', async (request) => {
-		const params = record(request.params, 'parameters')
-		return options.jobs.get(text(params.id, 'job')!)
-	})
+		const params = record(request.params, 'parameters');
+		return options.jobs.get(text(params.id, 'job')!);
+	});
 
 	app.delete('/api/indexing-jobs/:id', async (request) => {
-		const params = record(request.params, 'parameters')
-		return options.jobs.cancel(text(params.id, 'job')!)
-	})
+		const params = record(request.params, 'parameters');
+		return options.jobs.cancel(text(params.id, 'job')!);
+	});
 
 	app.get('/api/indexing-jobs/:id/events', async (request, reply) => {
-		const params = record(request.params, 'parameters')
-		const id = text(params.id, 'job')!
-		reply.hijack()
+		const params = record(request.params, 'parameters');
+		const id = text(params.id, 'job')!;
+		reply.hijack();
 		reply.raw.writeHead(200, {
 			'content-type': 'text/event-stream',
 			'cache-control': 'no-cache, no-transform',
 			connection: 'keep-alive',
 			'x-accel-buffering': 'no',
-		})
+		});
 		const send = (event: unknown) => {
-			reply.raw.write(`data: ${JSON.stringify(event)}\n\n`)
-		}
-		for (const event of options.jobs.events(id)) send(event)
-		const unsubscribe = options.jobs.subscribe(id, send)
-		const heartbeat = setInterval(() => reply.raw.write(': keep-alive\n\n'), 15_000)
+			reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+		};
+		for (const event of options.jobs.events(id)) send(event);
+		const unsubscribe = options.jobs.subscribe(id, send);
+		const heartbeat = setInterval(() => reply.raw.write(': keep-alive\n\n'), 15_000);
 		request.raw.on('close', () => {
-			clearInterval(heartbeat)
-			unsubscribe()
-		})
-	})
+			clearInterval(heartbeat);
+			unsubscribe();
+		});
+	});
 
 	app.post('/api/projects/:id/reindex', async (request, reply) => {
-		const params = record(request.params, 'parameters')
-		const id = text(params.id, 'project')!
-		const project = (await listIndexedProjects()).find(({ projectIdentifier }) => projectIdentifier === id)
-		if (project === undefined) throw new Error(`Indexed project ${id} was not found`)
-		const job = options.jobs.startReindex(id, project.root ?? id)
-		return reply.code(202).send(job)
-	})
+		const params = record(request.params, 'parameters');
+		const id = text(params.id, 'project')!;
+		const project = (await listIndexedProjects()).find(({ projectIdentifier }) => projectIdentifier === id);
+		if (project === undefined) throw new Error(`Indexed project ${id} was not found`);
+		const job = options.jobs.startReindex(id, project.root ?? id);
+		return reply.code(202).send(job);
+	});
 
 	app.post('/api/projects/:id/search', async (request) => {
-		const params = record(request.params, 'parameters')
-		const id = text(params.id, 'project')!
-		const input = searchInput(request.body)
-		const recipe = await recipes.read(id)
-		const profile = input.profile ?? (recipe?.provider.type === 'profile' ? recipe.provider.profile : undefined)
+		const params = record(request.params, 'parameters');
+		const id = text(params.id, 'project')!;
+		const input = searchInput(request.body);
+		const recipe = await recipes.read(id);
+		const profile = input.profile ?? (recipe?.provider.type === 'profile' ? recipe.provider.profile : undefined);
 		return search.search({
 			projectReference: id,
 			query: input.query,
@@ -194,83 +194,83 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 							...(input.rerankCandidates === undefined ? {} : { candidateLimit: input.rerankCandidates }),
 						},
 					}),
-		})
-	})
+		});
+	});
 
 	app.get('/api/projects/:id/chunks', async (request) => {
-		const params = record(request.params, 'parameters')
-		const query = record(request.query, 'query')
+		const params = record(request.params, 'parameters');
+		const query = record(request.query, 'query');
 		return inspection.chunks({
 			projectReference: text(params.id, 'project')!,
 			path: text(query.path, 'path')!,
-		})
-	})
+		});
+	});
 
 	app.post('/api/projects/:id/targets/:target/activate', async (request) => {
-		const params = record(request.params, 'parameters')
-		return targets.switchTarget(text(params.id, 'project')!, text(params.target, 'target')!)
-	})
+		const params = record(request.params, 'parameters');
+		return targets.switchTarget(text(params.id, 'project')!, text(params.target, 'target')!);
+	});
 
 	app.post('/api/projects/:id/targets/:target/rename', async (request) => {
-		const params = record(request.params, 'parameters')
-		const body = record(request.body)
+		const params = record(request.params, 'parameters');
+		const body = record(request.body);
 		return targets.renameTarget(
 			text(params.id, 'project')!,
 			text(params.target, 'target')!,
 			text(body.name, 'new target')!,
-		)
-	})
+		);
+	});
 
 	app.delete('/api/projects/:id', async (request) => {
-		const params = record(request.params, 'parameters')
-		return deleteIndexedProject(text(params.id, 'project')!)
-	})
+		const params = record(request.params, 'parameters');
+		return deleteIndexedProject(text(params.id, 'project')!);
+	});
 
 	async function projectSummaries(): Promise<ProjectSummary[]> {
-		const projects = await listIndexedProjects()
+		const projects = await listIndexedProjects();
 		return Promise.all(
 			projects.map(async (project): Promise<ProjectSummary> => {
 				try {
 					const targetState = (await targets.list(project.projectIdentifier)) as {
-						active?: ProjectSummary['active']
-						targets: ProjectSummary['targets']
-					}
-					const recipe = await recipes.read(project.projectIdentifier)
+						active?: ProjectSummary['active'];
+						targets: ProjectSummary['targets'];
+					};
+					const recipe = await recipes.read(project.projectIdentifier);
 					return {
 						...project,
 						active: targetState.active ?? null,
 						targets: targetState.targets,
 						...(recipe === undefined ? {} : { recipe }),
-					}
+					};
 				} catch (error: unknown) {
 					return {
 						...project,
 						active: null,
 						targets: [],
 						error: error instanceof Error ? error.message : String(error),
-					}
+					};
 				}
 			}),
-		)
+		);
 	}
 }
 
 async function executablePath(name: string): Promise<string> {
 	for (const directory of (process.env.PATH ?? '').split(delimiter)) {
-		if (directory.length === 0) continue
-		const candidate = join(directory, name)
+		if (directory.length === 0) continue;
+		const candidate = join(directory, name);
 		try {
-			await access(candidate, constants.X_OK)
-			return candidate
+			await access(candidate, constants.X_OK);
+			return candidate;
 		} catch {
 			// Continue through PATH just like a shell would.
 		}
 	}
-	return name
+	return name;
 }
 
 function profileInput(value: unknown): ProfileInput {
-	const body = record(value)
+	const body = record(value);
 	return {
 		name: text(body.name, 'name')!,
 		model: text(body.model, 'model')!,
@@ -313,11 +313,11 @@ function profileInput(value: unknown): ProfileInput {
 			: {
 					rerankingInstruction: text(body.rerankingInstruction, 'rerankingInstruction')!,
 				}),
-	}
+	};
 }
 
 function indexProjectInput(value: unknown): IndexProjectInput {
-	const body = record(value)
+	const body = record(value);
 	return {
 		root: text(body.root, 'root')!,
 		profile: text(body.profile, 'profile')!,
@@ -341,11 +341,11 @@ function indexProjectInput(value: unknown): IndexProjectInput {
 				}),
 		...(stringList(body.include, 'include') === undefined ? {} : { include: stringList(body.include, 'include')! }),
 		...(stringList(body.exclude, 'exclude') === undefined ? {} : { exclude: stringList(body.exclude, 'exclude')! }),
-	}
+	};
 }
 
 function searchInput(value: unknown): SearchInput {
-	const body = record(value)
+	const body = record(value);
 	return {
 		query: text(body.query, 'query')!,
 		...(text(body.profile, 'profile', { optional: true }) === undefined
@@ -390,5 +390,5 @@ function searchInput(value: unknown): SearchInput {
 						minimum: 1,
 					})!,
 				}),
-	}
+	};
 }

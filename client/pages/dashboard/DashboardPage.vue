@@ -206,47 +206,49 @@
 </template>
 
 <script setup lang="ts">
-	import { computed } from 'vue'
-	import { ArrowRight, Database, FolderCode, Layers3, Plus, RefreshCw, Search, Server } from '@lucide/vue'
+	import { computed } from 'vue';
+	import { ArrowRight, Database, FolderCode, Layers3, Plus, RefreshCw, Search, Server } from '@lucide/vue';
 
-	import type { IndexingJob, ProjectSummary, ProviderProfile } from '../../../shared/contracts'
-	import JobPanel from '../../entities/project/JobPanel.vue'
-	import StatusPill from '../../shared/components/StatusPill.vue'
+	import type { IndexingJob, ProjectSummary, ProviderProfile } from '../../../shared/contracts';
+	import JobPanel from '../../entities/project/JobPanel.vue';
+	import StatusPill from '../../shared/components/StatusPill.vue';
 
 	const props = defineProps<{
-		projects: readonly ProjectSummary[]
-		profiles: readonly ProviderProfile[]
-		jobs: readonly IndexingJob[]
-	}>()
+		projects: readonly ProjectSummary[];
+		profiles: readonly ProviderProfile[];
+		jobs: readonly IndexingJob[];
+	}>();
 
 	const emit = defineEmits<{
-		index: []
-		project: [project: ProjectSummary]
-		search: [project: ProjectSummary]
-		profiles: []
-		cancelJob: [id: string]
-	}>()
+		index: [];
+		project: [project: ProjectSummary];
+		search: [project: ProjectSummary];
+		profiles: [];
+		cancelJob: [id: string];
+	}>();
 
-	const activeJobs = computed(() => props.jobs.filter(({ status }) => status === 'running' || status === 'queued'))
+	const activeJobs = computed(() => props.jobs.filter(({ status }) => status === 'running' || status === 'queued'));
 	const recentJobs = computed(() =>
 		props.jobs.filter(({ status }) => status !== 'running' && status !== 'queued').slice(0, 3),
-	)
-	const readyBuilds = computed(() => props.projects.reduce((total, project) => total + project.buildsByStatus.ready, 0))
-	const storage = computed(() => props.projects.reduce((total, project) => total + project.databaseBytes, 0))
+	);
+	const readyBuilds = computed(() =>
+		props.projects.reduce((total, project) => total + project.buildsByStatus.ready, 0),
+	);
+	const storage = computed(() => props.projects.reduce((total, project) => total + project.databaseBytes, 0));
 
 	function formatBytes(bytes: number): string {
-		if (bytes < 1024) return `${bytes} B`
-		if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`
-		if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
-		return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+		if (bytes < 1024) return `${bytes} B`;
+		if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+		if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+		return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
 	}
 
 	function projectName(project: ProjectSummary): string {
-		return project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier
+		return project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier;
 	}
 
 	function projectSubtitle(project: ProjectSummary): string {
-		return project.root ?? project.projectIdentifier
+		return project.root ?? project.projectIdentifier;
 	}
 </script>
 
