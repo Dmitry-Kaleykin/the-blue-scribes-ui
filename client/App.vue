@@ -112,7 +112,7 @@
 					aria-label="Refresh workspace"
 					@click="load"
 				>
-					<Settings :size="18" />
+					<RefreshCw :size="18" />
 				</button>
 			</header>
 
@@ -221,9 +221,9 @@
 		LoaderCircle,
 		Menu,
 		Plus,
+		RefreshCw,
 		Search,
 		Server,
-		Settings,
 		X,
 	} from '@lucide/vue'
 
