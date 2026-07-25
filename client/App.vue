@@ -107,6 +107,10 @@
 					<span v-else><i /> Ready</span>
 				</div>
 				<button
+					v-tippy="{
+						content: 'Refresh workspace',
+						placement: 'bottom',
+					}"
 					class="icon-button"
 					type="button"
 					aria-label="Refresh workspace"
