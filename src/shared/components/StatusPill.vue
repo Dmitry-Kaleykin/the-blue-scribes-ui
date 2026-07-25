@@ -1,13 +1,16 @@
 <script setup lang="ts">
-defineProps<{
-  tone?: 'success' | 'warning' | 'danger' | 'neutral' | 'info'
-  label: string
-}>()
+	defineProps<{
+		tone?: 'success' | 'warning' | 'danger' | 'neutral' | 'info'
+		label: string
+	}>()
 </script>
 
 <template>
-  <span class="status-pill" :class="`status-pill--${tone ?? 'neutral'}`">
-    <span class="status-pill__dot" />
-    {{ label }}
-  </span>
+	<span
+		class="status-pill"
+		:class="`status-pill--${tone ?? 'neutral'}`"
+	>
+		<span class="status-pill__dot" />
+		{{ label }}
+	</span>
 </template>

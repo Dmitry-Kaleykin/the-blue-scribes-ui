@@ -49,6 +49,8 @@ serves the built Vue application and API from the same process. Stop it with
 ## Checks
 
 ```bash
+npm run format
+npm run format:check
 npm run typecheck
 npm test
 npm run build
