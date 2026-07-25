@@ -50,3 +50,74 @@
 		close: []
 	}>()
 </script>
+
+<style scoped>
+	.modal-backdrop {
+		position: fixed;
+		z-index: 100;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		padding: 24px;
+		background: rgba(8, 17, 31, 0.62);
+	}
+
+	.modal {
+		width: min(590px, 100%);
+		max-height: calc(100vh - 48px);
+		overflow: auto;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		box-shadow: 0 30px 80px rgba(8, 17, 31, 0.25);
+	}
+
+	.modal--wide {
+		width: min(820px, 100%);
+	}
+
+	.modal__header {
+		position: sticky;
+		z-index: 2;
+		top: 0;
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 20px;
+		padding: 22px 24px 17px;
+		background: var(--paper);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.modal__header h2 {
+		font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+		font-size: 1.55rem;
+	}
+
+	.modal__header p:last-child {
+		margin: 4px 0 0;
+	}
+
+	.modal__body {
+		padding: 22px 24px;
+	}
+
+	@media (max-width: 620px) {
+		.modal-backdrop {
+			padding: 0;
+		}
+
+		.modal {
+			width: 100%;
+			max-height: 100vh;
+			min-height: 100vh;
+			border: 0;
+			border-radius: 0;
+		}
+
+		.modal__header,
+		.modal__body {
+			padding-inline: 18px;
+		}
+	}
+</style>

@@ -119,3 +119,122 @@
 
 	const phase = computed(() => props.job.progress?.phase?.replaceAll('-', ' ') ?? props.job.status)
 </script>
+
+<style scoped>
+	.job-panel {
+		display: flex;
+		align-items: flex-start;
+		gap: 13px;
+		padding: 15px;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 8px;
+	}
+
+	.job-panel__icon {
+		display: grid;
+		width: 38px;
+		height: 38px;
+		flex: 0 0 auto;
+		place-items: center;
+		color: var(--cobalt);
+		background: var(--cobalt-pale);
+		border-radius: 6px;
+	}
+
+	.job-panel__icon--completed {
+		color: var(--teal);
+		background: var(--teal-pale);
+	}
+
+	.job-panel__icon--failed {
+		color: var(--danger);
+		background: var(--danger-pale);
+	}
+
+	.job-panel__body {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.job-panel__heading {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 15px;
+	}
+
+	.job-panel__heading strong {
+		display: block;
+		overflow: hidden;
+		color: var(--ink);
+		font-size: 0.78rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.job-panel__heading p {
+		margin: 1px 0 0;
+		color: var(--muted);
+		font-size: 0.66rem;
+		text-transform: capitalize;
+	}
+
+	.progress-track {
+		position: relative;
+		height: 4px;
+		margin: 11px 0 6px;
+		overflow: hidden;
+		background: #e9e8e2;
+		border-radius: 4px;
+	}
+
+	.progress-track span {
+		display: block;
+		height: 100%;
+		background: var(--cobalt);
+		transition: width 180ms;
+	}
+
+	.progress-track--indeterminate span {
+		width: 30%;
+		animation: progress 1.4s ease-in-out infinite;
+	}
+
+	.job-panel__details {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		color: var(--faint);
+		font-size: 0.62rem;
+	}
+
+	.job-panel__path {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 7px 0 0;
+		overflow: hidden;
+		color: var(--muted);
+		font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+		font-size: 0.61rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.job-panel__result {
+		margin: 8px 0 0;
+		color: var(--muted);
+		font-size: 0.67rem;
+	}
+
+	@keyframes progress {
+		0% {
+			transform: translateX(-110%);
+		}
+
+		100% {
+			transform: translateX(350%);
+		}
+	}
+</style>

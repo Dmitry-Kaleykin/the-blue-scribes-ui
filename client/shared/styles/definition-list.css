@@ -1,0 +1,33 @@
+.definition-list {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+}
+
+.definition-list div {
+	display: grid;
+	grid-template-columns: 125px minmax(0, 1fr);
+	gap: 12px;
+}
+
+.definition-list dt {
+	color: var(--muted);
+	font-size: 0.67rem;
+}
+
+.definition-list dd {
+	margin: 0;
+	overflow: hidden;
+	color: var(--ink);
+	font-size: 0.69rem;
+	font-weight: 650;
+	text-align: right;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.definition-list--wide div {
+	grid-template-columns: minmax(120px, 1fr) minmax(0, 1.3fr);
+	padding-bottom: 9px;
+	border-bottom: 1px solid #ebeae5;
+}

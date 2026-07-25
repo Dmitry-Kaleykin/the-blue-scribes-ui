@@ -1,0 +1,198 @@
+.form-stack {
+	display: grid;
+	gap: 20px;
+}
+
+.form-grid {
+	display: grid;
+	gap: 14px;
+}
+
+.form-grid--two {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid--three {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-section {
+	display: grid;
+	gap: 14px;
+	padding: 17px;
+	background: #f8f7f2;
+	border: 1px solid var(--line);
+	border-radius: 7px;
+}
+
+.form-section h3 {
+	margin: 0;
+}
+
+.field {
+	display: grid;
+	align-content: start;
+	gap: 6px;
+	color: #425066;
+	font-size: 0.7rem;
+	font-weight: 700;
+}
+
+.field > span {
+	display: flex;
+	justify-content: space-between;
+}
+
+.field em {
+	color: var(--faint);
+	font-size: 0.62rem;
+	font-style: normal;
+	font-weight: 500;
+}
+
+.field small {
+	color: var(--muted);
+	font-size: 0.61rem;
+	font-weight: 500;
+}
+
+.field input,
+.field select,
+.field textarea,
+.input-control {
+	width: 100%;
+	min-height: 40px;
+	padding: 9px 10px;
+	color: var(--ink);
+	background: var(--paper);
+	border: 1px solid var(--line-strong);
+	border-radius: 5px;
+	outline: none;
+}
+
+.field textarea {
+	resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.input-control:focus {
+	border-color: #7797e5;
+	box-shadow: 0 0 0 3px rgba(36, 94, 219, 0.1);
+}
+
+.field input:disabled {
+	background: #eae9e4;
+}
+
+.input-with-icon {
+	position: relative;
+}
+
+.input-with-icon svg {
+	position: absolute;
+	top: 11px;
+	left: 11px;
+	color: var(--faint);
+}
+
+.input-with-icon input {
+	padding-left: 39px;
+}
+
+.check-field {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 11px;
+	background: var(--paper);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	color: var(--ink);
+}
+
+.check-field--compact {
+	align-self: end;
+}
+
+.check-field input {
+	width: 15px;
+	height: 15px;
+	margin: 3px 0 0;
+	accent-color: var(--cobalt);
+}
+
+.check-field span {
+	display: flex;
+	flex-direction: column;
+}
+
+.check-field strong {
+	font-size: 0.69rem;
+}
+
+.check-field small {
+	color: var(--muted);
+	font-size: 0.59rem;
+}
+
+.disclosure {
+	display: inline-flex;
+	width: fit-content;
+	align-items: center;
+	gap: 6px;
+	padding: 0;
+	color: var(--cobalt);
+	background: transparent;
+	border: 0;
+	font-size: 0.69rem;
+	font-weight: 700;
+}
+
+.form-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-top: 5px;
+}
+
+.form-actions__spacer {
+	flex: 1;
+}
+
+.feedback {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid;
+	border-radius: 6px;
+	font-size: 0.69rem;
+}
+
+.feedback--success {
+	color: #176e66;
+	background: var(--teal-pale);
+	border-color: #b6ded8;
+}
+
+.feedback--danger {
+	color: #983939;
+	background: var(--danger-pale);
+	border-color: #efcaca;
+}
+
+.feedback--warning {
+	color: #8a581c;
+	background: var(--amber-pale);
+	border-color: #ebd09d;
+}
+
+@media (max-width: 620px) {
+	.form-grid--two,
+	.form-grid--three {
+		grid-template-columns: 1fr;
+	}
+}

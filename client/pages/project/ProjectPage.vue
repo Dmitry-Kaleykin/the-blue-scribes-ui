@@ -92,6 +92,7 @@
 							@submit.prevent="saveTarget"
 						>
 							<input
+								class="input-control"
 								v-model="targetName"
 								autofocus
 								aria-label="New target name"
@@ -206,7 +207,7 @@
 					{{ copied ? 'Copied' : 'Copy JSON' }}
 				</button>
 			</div>
-			<pre class="config-block"><code>{{ mcpConfig }}</code></pre>
+			<pre class="config-block code-block"><code>{{ mcpConfig }}</code></pre>
 		</section>
 
 		<section class="danger-zone">
@@ -321,3 +322,180 @@
 		}).format(new Date(value))
 	}
 </script>
+
+<style scoped>
+	.back-button {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		margin-bottom: 21px;
+		padding: 0;
+		color: var(--muted);
+		background: transparent;
+		border: 0;
+		font-size: 0.74rem;
+	}
+
+	.project-hero {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		margin-bottom: 30px;
+	}
+
+	.project-hero__mark {
+		display: grid;
+		width: 54px;
+		height: 54px;
+		flex: 0 0 auto;
+		place-items: center;
+		color: white;
+		background: var(--cobalt);
+		border-radius: 9px;
+	}
+
+	.project-hero h1 {
+		margin-bottom: 2px;
+		font-size: 2.45rem;
+	}
+
+	.project-hero p:last-child {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.72rem;
+	}
+
+	.project-hero__actions {
+		display: flex;
+		gap: 8px;
+		margin-left: auto;
+	}
+
+	.detail-grid {
+		display: grid;
+		grid-template-columns: 1.3fr 0.9fr;
+		gap: 15px;
+		margin-top: 26px;
+	}
+
+	.surface {
+		padding: 20px;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 9px;
+	}
+
+	.target-list {
+		display: grid;
+		gap: 1px;
+	}
+
+	.target-row {
+		display: flex;
+		min-height: 56px;
+		align-items: center;
+		gap: 10px;
+		padding: 9px 0;
+		border-top: 1px solid #e7e6e0;
+	}
+
+	.target-row__branch {
+		display: grid;
+		width: 32px;
+		height: 32px;
+		place-items: center;
+		color: var(--cobalt);
+		background: var(--cobalt-pale);
+		border-radius: 5px;
+	}
+
+	.target-row__identity {
+		display: flex;
+		min-width: 0;
+		flex: 1;
+		flex-direction: column;
+	}
+
+	.target-row__identity strong {
+		color: var(--ink);
+		font-size: 0.76rem;
+	}
+
+	.target-row__identity code {
+		overflow: hidden;
+		color: var(--muted);
+		font-size: 0.55rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.target-rename {
+		display: flex;
+		min-width: 0;
+		flex: 1;
+	}
+
+	.mcp-section {
+		margin-top: 15px;
+	}
+
+	.config-block {
+		max-height: 390px;
+		padding: 18px;
+		border-radius: 6px;
+	}
+
+	.danger-zone {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 20px;
+		margin-top: 28px;
+		padding: 18px 20px;
+		background: var(--danger-pale);
+		border: 1px solid #efcaca;
+		border-radius: 8px;
+	}
+
+	.danger-zone h2 {
+		margin-bottom: 3px;
+		color: #8e3030;
+	}
+
+	.danger-zone p {
+		margin: 0;
+		color: #9a5959;
+		font-size: 0.7rem;
+	}
+
+	@media (max-width: 800px) {
+		.project-hero {
+			align-items: flex-start;
+			flex-wrap: wrap;
+		}
+
+		.project-hero__actions {
+			width: 100%;
+			margin-left: 0;
+		}
+
+		.detail-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 620px) {
+		.project-hero h1 {
+			font-size: 2rem;
+		}
+
+		.project-hero__actions .button {
+			flex: 1;
+		}
+
+		.danger-zone {
+			align-items: stretch;
+			flex-direction: column;
+		}
+	}
+</style>

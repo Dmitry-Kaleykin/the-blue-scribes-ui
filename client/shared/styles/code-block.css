@@ -1,0 +1,9 @@
+.code-block {
+	margin: 0;
+	overflow: auto;
+	color: #d8e3f3;
+	background: #132138;
+	font-size: 0.69rem;
+	line-height: 1.65;
+	tab-size: 2;
+}

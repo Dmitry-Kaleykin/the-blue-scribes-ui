@@ -16,6 +16,14 @@ server/  Local HTTP API
 shared/  Contracts used by both runtimes
 ```
 
+Client styling follows the same ownership boundary:
+
+- component-only rules live in that component's scoped `<style>` block;
+- reusable controls, forms, page primitives, definition lists, and code surfaces
+  live in `client/shared/styles/`;
+- `client/style.css` contains only application-wide foundations and imports the
+  shared style modules once.
+
 ## Development
 
 The core project must exist beside this repository:

@@ -120,3 +120,68 @@
 		remove: [profile: ProviderProfile]
 	}>()
 </script>
+
+<style scoped>
+	.profile-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 15px;
+	}
+
+	.profile-card {
+		padding: 20px;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 9px;
+	}
+
+	.profile-card > header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 19px;
+	}
+
+	.profile-card__icon {
+		display: grid;
+		width: 42px;
+		height: 42px;
+		place-items: center;
+		color: var(--cobalt);
+		background: var(--cobalt-pale);
+		border-radius: 7px;
+	}
+
+	.profile-card header h2 {
+		margin-bottom: 4px;
+		font-size: 1rem;
+	}
+
+	.profile-card__url {
+		margin: 17px 0;
+		overflow: hidden;
+		color: var(--muted);
+		font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+		font-size: 0.67rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.profile-card > footer {
+		display: flex;
+		align-items: center;
+		gap: 3px;
+		padding-top: 14px;
+		border-top: 1px solid #e9e8e2;
+	}
+
+	.profile-card > footer > span {
+		flex: 1;
+	}
+
+	@media (max-width: 800px) {
+		.profile-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

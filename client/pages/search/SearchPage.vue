@@ -211,7 +211,7 @@
 							>
 						</div>
 					</header>
-					<pre><code>{{ result.content }}</code></pre>
+					<pre class="code-block"><code>{{ result.content }}</code></pre>
 					<footer v-if="result.context && (result.context.before.length > 0 || result.context.after.length > 0)">
 						<button
 							class="button button--ghost button--small"
@@ -237,14 +237,14 @@
 								:key="chunk.chunkId"
 							>
 								<span>Before · lines {{ chunk.range.startLine }}–{{ chunk.range.endLine }}</span>
-								<pre><code>{{ chunk.content }}</code></pre>
+								<pre class="code-block"><code>{{ chunk.content }}</code></pre>
 							</article>
 							<article
 								v-for="chunk in result.context.after"
 								:key="chunk.chunkId"
 							>
 								<span>After · lines {{ chunk.range.startLine }}–{{ chunk.range.endLine }}</span>
-								<pre><code>{{ chunk.content }}</code></pre>
+								<pre class="code-block"><code>{{ chunk.content }}</code></pre>
 							</article>
 						</div>
 					</footer>
@@ -357,3 +357,230 @@
 		return value === undefined ? '—' : value.toFixed(3)
 	}
 </script>
+
+<style scoped>
+	.search-panel {
+		padding: 20px;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 9px;
+		box-shadow: var(--shadow);
+	}
+
+	.search-panel__selectors {
+		display: grid;
+		grid-template-columns: 1.5fr 1fr;
+		gap: 14px;
+		margin-bottom: 14px;
+	}
+
+	.search-box {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 10px 10px 15px;
+		background: #f8f8f5;
+		border: 1px solid var(--line-strong);
+		border-radius: 8px;
+	}
+
+	.search-box > svg {
+		flex: 0 0 auto;
+		color: var(--cobalt);
+	}
+
+	.search-box textarea {
+		min-height: 44px;
+		flex: 1;
+		padding: 9px 0;
+		resize: vertical;
+		color: var(--ink);
+		background: transparent;
+		border: 0;
+		outline: 0;
+	}
+
+	.search-panel__footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 10px;
+	}
+
+	.advanced-search {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 12px;
+		margin-top: 16px;
+		padding-top: 16px;
+		border-top: 1px solid var(--line);
+	}
+
+	.results-section {
+		margin-top: 32px;
+	}
+
+	.build-chip {
+		display: block;
+		max-width: 300px;
+		overflow: hidden;
+		padding: 5px 8px;
+		color: var(--muted);
+		background: #eae9e3;
+		border-radius: 4px;
+		font-size: 0.61rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.result-list {
+		display: grid;
+		gap: 12px;
+	}
+
+	.search-result {
+		overflow: hidden;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 8px;
+	}
+
+	.search-result > header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 14px 16px;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.result-rank {
+		display: grid;
+		width: 27px;
+		height: 27px;
+		flex: 0 0 auto;
+		place-items: center;
+		color: var(--cobalt);
+		background: var(--cobalt-pale);
+		border-radius: 5px;
+		font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+		font-size: 0.68rem;
+		font-weight: 700;
+	}
+
+	.search-result__identity {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.search-result__identity h3 {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		margin: 0;
+		overflow: hidden;
+		font-size: 0.76rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.search-result__identity p {
+		margin: 3px 0 0;
+		color: var(--muted);
+		font-size: 0.62rem;
+	}
+
+	.score-set {
+		display: flex;
+		gap: 8px;
+	}
+
+	.score-set span {
+		display: flex;
+		min-width: 58px;
+		flex-direction: column;
+		align-items: flex-end;
+	}
+
+	.score-set small {
+		color: var(--faint);
+		font-size: 0.54rem;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+	}
+
+	.score-set strong {
+		color: var(--ink);
+		font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+		font-size: 0.69rem;
+	}
+
+	.search-result > pre {
+		max-height: 390px;
+		padding: 18px;
+	}
+
+	.search-result > footer {
+		padding: 8px 14px;
+		background: #faf9f5;
+		border-top: 1px solid var(--line);
+	}
+
+	.context-chunks {
+		display: grid;
+		gap: 8px;
+		margin-top: 8px;
+	}
+
+	.context-chunks article > span {
+		display: block;
+		padding: 5px 10px;
+		color: var(--muted);
+		background: #ebeae5;
+		font-size: 0.6rem;
+	}
+
+	.context-chunks pre {
+		max-height: 260px;
+		padding: 14px;
+	}
+
+	@media (max-width: 1080px) {
+		.advanced-search {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	@media (max-width: 620px) {
+		.search-panel__selectors,
+		.advanced-search {
+			grid-template-columns: 1fr;
+		}
+
+		.search-box {
+			align-items: stretch;
+			flex-wrap: wrap;
+		}
+
+		.search-box > textarea {
+			min-width: calc(100% - 35px);
+		}
+
+		.search-box > .button {
+			width: 100%;
+		}
+
+		.search-result > header {
+			align-items: flex-start;
+			flex-wrap: wrap;
+		}
+
+		.score-set {
+			width: 100%;
+			padding-left: 39px;
+		}
+
+		.score-set span {
+			align-items: flex-start;
+		}
+	}
+</style>

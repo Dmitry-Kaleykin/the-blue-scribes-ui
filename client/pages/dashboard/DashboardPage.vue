@@ -249,3 +249,180 @@
 		return project.root ?? project.projectIdentifier
 	}
 </script>
+
+<style scoped>
+	.project-table {
+		overflow: hidden;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: 9px;
+	}
+
+	.project-table__head,
+	.project-row {
+		display: grid;
+		grid-template-columns:
+			minmax(250px, 1.8fr) minmax(130px, 0.8fr) minmax(155px, 1fr)
+			90px 140px;
+		align-items: center;
+		gap: 18px;
+	}
+
+	.project-table__head {
+		padding: 10px 18px;
+		color: var(--faint);
+		background: #f9f8f4;
+		border-bottom: 1px solid var(--line);
+		font-size: 0.62rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.09em;
+	}
+
+	.project-row {
+		min-height: 78px;
+		padding: 12px 18px;
+		border-bottom: 1px solid #e8e7e1;
+	}
+
+	.project-row:last-child {
+		border-bottom: 0;
+	}
+
+	.project-row__identity {
+		display: flex;
+		min-width: 0;
+		align-items: center;
+		gap: 12px;
+		padding: 0;
+		text-align: left;
+		background: transparent;
+		border: 0;
+	}
+
+	.project-row__identity > span:last-child,
+	.project-row__build {
+		display: flex;
+		min-width: 0;
+		flex-direction: column;
+	}
+
+	.project-row__identity strong,
+	.project-row__build strong {
+		overflow: hidden;
+		color: var(--ink);
+		font-size: 0.79rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.project-row__identity small,
+	.project-row__build small {
+		overflow: hidden;
+		color: var(--muted);
+		font-size: 0.65rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.project-mark {
+		display: grid;
+		width: 38px;
+		height: 38px;
+		flex: 0 0 auto;
+		place-items: center;
+		color: var(--cobalt);
+		background: var(--cobalt-pale);
+		border-radius: 6px;
+	}
+
+	.project-row__actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 2px;
+	}
+
+	.quick-actions {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 12px;
+		margin-top: 34px;
+	}
+
+	.quick-action {
+		display: grid;
+		grid-template-columns: 34px 1fr;
+		gap: 0 11px;
+		padding: 15px;
+		text-align: left;
+		background: transparent;
+		border: 1px dashed #c6c5be;
+		border-radius: 7px;
+	}
+
+	.quick-action:hover:not(:disabled) {
+		background: var(--paper);
+		border-color: #9baadc;
+	}
+
+	.quick-action > span {
+		display: grid;
+		grid-row: span 2;
+		width: 34px;
+		height: 34px;
+		place-items: center;
+		color: var(--cobalt);
+		background: var(--cobalt-pale);
+		border-radius: 5px;
+	}
+
+	.quick-action strong {
+		color: var(--ink);
+		font-size: 0.75rem;
+	}
+
+	.quick-action small {
+		color: var(--muted);
+		font-size: 0.66rem;
+	}
+
+	.job-list {
+		display: grid;
+		gap: 9px;
+	}
+
+	@media (max-width: 1080px) {
+		.project-table__head {
+			display: none;
+		}
+
+		.project-row {
+			grid-template-columns: minmax(230px, 1.5fr) minmax(120px, 0.8fr) 130px;
+		}
+
+		.project-row__build,
+		.project-row > .mono-muted {
+			display: none;
+		}
+	}
+
+	@media (max-width: 620px) {
+		.quick-actions {
+			grid-template-columns: 1fr;
+		}
+
+		.project-row {
+			grid-template-columns: 1fr auto;
+			gap: 10px;
+		}
+
+		.project-row > div:nth-child(2) {
+			display: none;
+		}
+
+		.project-row__actions .button {
+			display: none;
+		}
+	}
+</style>
