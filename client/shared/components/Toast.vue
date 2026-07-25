@@ -1,27 +1,36 @@
 <template>
-	<div
-		class="toast"
-		:class="`toast--${tone}`"
-		role="status"
+	<Transition
+		name="toast"
+		mode="out-in"
 	>
-		<span />
-		{{ message }}
-		<button
-			type="button"
-			aria-label="Dismiss notification"
-			@click="emit('close')"
+		<div
+			:key="item.id"
+			class="toast"
+			:class="`toast--${item.tone}`"
+			role="status"
 		>
-			<X :size="16" />
-		</button>
-	</div>
+			<span />
+			{{ item.message }}
+			<button
+				type="button"
+				aria-label="Dismiss notification"
+				@click="emit('close')"
+			>
+				<X :size="16" />
+			</button>
+		</div>
+	</Transition>
 </template>
 
 <script setup lang="ts">
 	import { X } from '@lucide/vue';
 
 	defineProps<{
-		tone: 'success' | 'danger';
-		message: string;
+		item: {
+			id: number;
+			tone: 'success' | 'danger';
+			message: string;
+		};
 	}>();
 
 	const emit = defineEmits<{
@@ -30,6 +39,27 @@
 </script>
 
 <style scoped>
+	.toast-enter-active,
+	.toast-leave-active {
+		transition: opacity 150ms ease, transform 150ms ease;
+	}
+
+	.toast-enter-from,
+	.toast-leave-to {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+
+	.toast-enter-to,
+	.toast-leave-from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.toast-move {
+		transition: transform 300ms ease;
+	}
+
 	.toast {
 		position: fixed;
 		z-index: 150;

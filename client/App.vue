@@ -199,9 +199,8 @@
 		/>
 
 		<Toast
-			v-if="toast"
-			:tone="toast.tone"
-			:message="toast.message"
+			v-if="toastCurrent"
+			:item="toastCurrent"
 			@close="dismissToast"
 		/>
 	</div>
@@ -251,7 +250,7 @@
 	const profileModal = ref(false);
 	const editingProfile = ref<ProviderProfile>();
 	const subscriptions = new Map<string, () => void>();
-	const { toast, showToast, dismissToast } = useToast();
+	const { current: toastCurrent, showToast, dismissToast } = useToast();
 
 	const selectedProject = computed(() =>
 		data.value.projects.find(({ projectIdentifier }) => projectIdentifier === selectedProjectId.value),
