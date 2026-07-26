@@ -1,6 +1,7 @@
 {
 	"name": "the-blue-scribes-ui",
 	"private": true,
+	"license": "Apache-2.0",
 	"version": "0.1.0",
 	"description": "Local control panel for The Blue Scribes",
 	"type": "module",
