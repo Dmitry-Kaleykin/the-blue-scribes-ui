@@ -13,37 +13,21 @@
 				<div class="search-panel__selectors">
 					<label class="field">
 						<span>Project</span>
-						<select
+						<Select
 							v-model="form.project"
-							required
-						>
-							<option
-								disabled
-								value=""
-							>
-								Choose an indexed project
-							</option>
-							<option
-								v-for="project in projects"
-								:key="project.projectIdentifier"
-								:value="project.projectIdentifier"
-							>
-								{{ projectName(project) }}{{ project.active?.target ? ` · ${project.active.target}` : '' }}
-							</option>
-						</select>
+							:options="projectOptions"
+							placeholder="Choose an indexed project"
+							ariaLabelledBy="project-label"
+						/>
 					</label>
 					<label class="field">
 						<span>Profile override <em>optional</em></span>
-						<select v-model="form.profile">
-							<option value="">Use project's recipe</option>
-							<option
-								v-for="profile in profiles"
-								:key="profile.name"
-								:value="profile.name"
-							>
-								{{ profile.name }}
-							</option>
-						</select>
+						<Select
+							v-model="form.profile"
+							:options="profileOptions"
+							placeholder="Use project's recipe"
+							ariaLabelledBy="profile-label"
+						/>
 					</label>
 				</div>
 
@@ -268,6 +252,7 @@
 
 	import type { ProjectSummary, ProviderProfile, SearchResponse } from '../../../shared/contracts';
 	import { api } from '../../shared/api/client';
+	import Select from '../../shared/components/Select.vue';
 	const props = defineProps<{
 		projects: readonly ProjectSummary[];
 		profiles: readonly ProviderProfile[];
@@ -322,6 +307,18 @@
 	function projectName(project: ProjectSummary): string {
 		return project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier;
 	}
+
+	const projectOptions = computed(() =>
+		props.projects.map((project) => ({
+			value: project.projectIdentifier,
+			label: `${projectName(project)}${project.active?.target ? ` · ${project.active.target}` : ''}`,
+		})),
+	);
+
+	const profileOptions = computed(() => [
+		{ value: '', label: "Use project's recipe" },
+		...props.profiles.map((profile) => ({ value: profile.name, label: profile.name })),
+	]);
 
 	async function submit(): Promise<void> {
 		if (!form.project || !form.query.trim()) {

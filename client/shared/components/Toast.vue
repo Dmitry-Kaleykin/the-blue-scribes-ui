@@ -41,7 +41,9 @@
 <style scoped>
 	.toast-enter-active,
 	.toast-leave-active {
-		transition: opacity 150ms ease, transform 150ms ease;
+		transition:
+			opacity 150ms ease,
+			transform 150ms ease;
 	}
 
 	.toast-enter-from,

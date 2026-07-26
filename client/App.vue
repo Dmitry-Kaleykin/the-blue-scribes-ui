@@ -670,7 +670,6 @@
 		margin-right: auto;
 	}
 
-
 	.app-loading,
 	.app-error {
 		display: grid;
