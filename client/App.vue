@@ -46,21 +46,22 @@
 
 			<div class="sidebar__section">
 				<p>Projects</p>
-				<button
-					v-if="data.projects.length > 0"
-					v-for="project in data.projects.slice(0, 7)"
-					:key="project.projectIdentifier"
-					class="project-link"
-					:class="{
-						active: activeView === 'project' && selectedProjectId === project.projectIdentifier,
-					}"
-					type="button"
-					@click="openProject(project)"
-				>
-					<FolderCode :size="17" />
-					<span>{{ project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier }}</span>
-					<i v-if="project.active" />
-				</button>
+				<template v-if="data.projects.length > 0">
+					<button
+						v-for="project in data.projects.slice(0, 7)"
+						:key="project.projectIdentifier"
+						class="project-link"
+						:class="{
+							active: activeView === 'project' && selectedProjectId === project.projectIdentifier,
+						}"
+						type="button"
+						@click="openProject(project)"
+					>
+						<FolderCode :size="17" />
+						<span>{{ project.root?.split('/').filter(Boolean).at(-1) ?? project.projectIdentifier }}</span>
+						<i v-if="project.active" />
+					</button>
+				</template>
 				<span
 					v-else
 					class="sidebar__empty"
@@ -198,7 +199,7 @@
 			@saved="profileSaved"
 		/>
 
-		<Toast
+		<ScribesToast
 			v-if="toastCurrent"
 			:item="toastCurrent"
 			@close="dismissToast"
@@ -228,7 +229,7 @@
 	import ProfilesPage from './pages/profiles/ProfilesPage.vue';
 	import ProjectPage from './pages/project/ProjectPage.vue';
 	import SearchPage from './pages/search/SearchPage.vue';
-	import Toast from './shared/components/Toast.vue';
+	import ScribesToast from './shared/components/ScribesToast.vue';
 	import { api, subscribeToJob } from './shared/api/client';
 	import { useToast } from './shared/composables/useToast';
 

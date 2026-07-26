@@ -13,7 +13,7 @@
 				<div class="search-panel__selectors">
 					<label class="field">
 						<span>Project</span>
-						<Select
+						<ScribesSelect
 							v-model="form.project"
 							:options="projectOptions"
 							placeholder="Choose an indexed project"
@@ -22,7 +22,7 @@
 					</label>
 					<label class="field">
 						<span>Profile override <em>optional</em></span>
-						<Select
+						<ScribesSelect
 							v-model="form.profile"
 							:options="profileOptions"
 							placeholder="Use project's recipe"
@@ -252,7 +252,7 @@
 
 	import type { ProjectSummary, ProviderProfile, SearchResponse } from '../../../shared/contracts';
 	import { api } from '../../shared/api/client';
-	import Select from '../../shared/components/Select.vue';
+	import ScribesSelect from '../../shared/components/ScribesSelect.vue';
 	const props = defineProps<{
 		projects: readonly ProjectSummary[];
 		profiles: readonly ProviderProfile[];

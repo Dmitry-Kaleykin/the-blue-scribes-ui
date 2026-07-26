@@ -73,39 +73,47 @@
 			case 'ArrowDown':
 				event.preventDefault();
 				// Skip disabled options
-				let nextIdx = activeIndex.value + 1;
-				while (nextIdx < count && props.options[nextIdx]?.disabled) {nextIdx++;}
-				activeIndex.value = nextIdx < count ? nextIdx : 0;
-				setActiveIndex(activeIndex.value);
+				{
+					let nextIdx = activeIndex.value + 1;
+					while (nextIdx < count && props.options[nextIdx]?.disabled) {nextIdx++;}
+					activeIndex.value = nextIdx < count ? nextIdx : 0;
+					setActiveIndex(activeIndex.value);
+				}
 				break;
 
 			case 'ArrowUp':
 				event.preventDefault();
 				// Skip disabled options
-				let prevIdx = activeIndex.value - 1;
-				while (prevIdx >= 0 && props.options[prevIdx]?.disabled) {prevIdx--;}
-				activeIndex.value = prevIdx >= 0 ? prevIdx : count - 1;
-				setActiveIndex(activeIndex.value);
+				{
+					let prevIdx = activeIndex.value - 1;
+					while (prevIdx >= 0 && props.options[prevIdx]?.disabled) {prevIdx--;}
+					activeIndex.value = prevIdx >= 0 ? prevIdx : count - 1;
+					setActiveIndex(activeIndex.value);
+				}
 				break;
 
 			case 'Home':
 				event.preventDefault();
-				const first = props.options.findIndex((o) => !o.disabled);
-				activeIndex.value = first >= 0 ? first : 0;
-				setActiveIndex(activeIndex.value);
+				{
+					const first = props.options.findIndex((o) => !o.disabled);
+					activeIndex.value = first >= 0 ? first : 0;
+					setActiveIndex(activeIndex.value);
+				}
 				break;
 
 			case 'End':
 				event.preventDefault();
-				let last = -1;
-				for (let i = count - 1; i >= 0; i--) {
-					if (!props.options[i]?.disabled) {
-						last = i;
-						break;
+				{
+					let last = -1;
+					for (let i = count - 1; i >= 0; i--) {
+						if (!props.options[i]?.disabled) {
+							last = i;
+							break;
+						}
 					}
+					activeIndex.value = last >= 0 ? last : 0;
+					setActiveIndex(activeIndex.value);
 				}
-				activeIndex.value = last >= 0 ? last : 0;
-				setActiveIndex(activeIndex.value);
 				break;
 
 			case 'Enter':

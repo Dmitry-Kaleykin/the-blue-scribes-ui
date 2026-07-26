@@ -1,12 +1,12 @@
 <template>
 	<div
-		class="select"
-		:class="{ 'select--open': isOpen, 'select--disabled': disabled }"
+		class="scribes-select"
+		:class="{ 'scribes-select--open': isOpen, 'scribes-select--disabled': disabled }"
 	>
 		<!-- Trigger Button -->
 		<button
 			ref="triggerRef"
-			class="select__trigger"
+			class="scribes-select__trigger"
 			type="button"
 			:aria-expanded="isOpen"
 			aria-haspopup="listbox"
@@ -16,9 +16,9 @@
 			@keydown.down.prevent="open"
 			@keydown.up.prevent="open"
 		>
-			<span class="select__value">{{ displayValue }}</span>
+			<span class="scribes-select__value">{{ displayValue }}</span>
 			<ChevronDown
-				class="select__chevron"
+				class="scribes-select__chevron"
 				:size="16"
 			/>
 		</button>
@@ -62,17 +62,17 @@
 	import DropdownList from './DropdownList.vue';
 	import DropdownOption from './DropdownOption.vue';
 
-	export interface SelectOption<T = string> {
+	export interface ScribesSelectOption<T = string> {
 		value: T;
 		label: string;
 		disabled?: boolean;
 	}
 
-	export interface SelectProps<T = string> {
+	export interface ScribesSelectProps<T = string> {
 		/** Currently selected value. */
 		modelValue?: T;
 		/** Available options. */
-		options: SelectOption<T>[];
+		options: ScribesSelectOption<T>[];
 		/** Whether the select is disabled. */
 		disabled?: boolean;
 		/** Placeholder text when no value is selected. */
@@ -83,7 +83,7 @@
 		dropdownOffset?: number;
 	}
 
-	const props = withDefaults(defineProps<SelectProps<string>>(), {
+	const props = withDefaults(defineProps<ScribesSelectProps<string>>(), {
 		modelValue: undefined,
 		disabled: false,
 		placeholder: 'Select an option',
@@ -110,7 +110,11 @@
 
 	function toggle() {
 		if (props.disabled) {return;}
-		isOpen.value ? close() : open();
+		if (isOpen.value) {
+			close();
+		} else {
+			open();
+		}
 	}
 
 	function open() {
@@ -156,7 +160,7 @@
 	// Close dropdown when clicking outside
 	function handleClickOutside(event: MouseEvent) {
 		if (!isOpen.value) {return;}
-		const selectEl = triggerRef.value?.closest('.select');
+		const selectEl = triggerRef.value?.closest('.scribes-select');
 		if (selectEl && selectEl.contains(event.target as Node)) {return;}
 		close();
 	}
@@ -171,13 +175,13 @@
 </script>
 
 <style scoped>
-	.select {
+	.scribes-select {
 		position: relative;
 		display: inline-flex;
 		width: 100%;
 	}
 
-	.select__trigger {
+	.scribes-select__trigger {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -199,23 +203,23 @@
 		user-select: none;
 	}
 
-	.select__trigger:hover {
+	.scribes-select__trigger:hover {
 		border-color: #7797e5;
 	}
 
-	.select__trigger:focus {
+	.scribes-select__trigger:focus {
 		outline: none;
 		border-color: #7797e5;
 		box-shadow: 0 0 0 3px rgba(36, 94, 219, 0.1);
 	}
 
-	.select--disabled .select__trigger {
+	.scribes-select--disabled .scribes-select__trigger {
 		background: #eae9e4;
 		cursor: default;
 		opacity: 0.6;
 	}
 
-	.select__value {
+	.scribes-select__value {
 		flex: 1;
 		min-width: 0;
 		overflow: hidden;
@@ -223,7 +227,7 @@
 		white-space: nowrap;
 	}
 
-	.select__chevron {
+	.scribes-select__chevron {
 		flex: 0 0 auto;
 		position: absolute;
 		right: 10px;
@@ -232,7 +236,7 @@
 		transition: transform 0.15s ease;
 	}
 
-	.select--open .select__chevron {
+	.scribes-select--open .scribes-select__chevron {
 		transform: rotate(180deg);
 	}
 </style>

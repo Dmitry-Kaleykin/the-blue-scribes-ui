@@ -30,6 +30,7 @@ export default typescriptEslint.config(
 					order: ['template', 'script', 'style'],
 				},
 			],
+			'vue/no-deprecated-filter': 'off',
 		},
 	},
 	eslintConfigPrettier,

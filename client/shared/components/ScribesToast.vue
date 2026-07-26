@@ -1,12 +1,12 @@
 <template>
 	<Transition
-		name="toast"
+		name="scribes-toast"
 		mode="out-in"
 	>
-		<div
-			:key="item.id"
-			class="toast"
-			:class="`toast--${item.tone}`"
+	<div
+		:key="item.id"
+		class="scribes-toast"
+			:class="`scribes-toast--${item.tone}`"
 			role="status"
 		>
 			<span />
@@ -39,30 +39,30 @@
 </script>
 
 <style scoped>
-	.toast-enter-active,
-	.toast-leave-active {
+	.scribes-toast-enter-active,
+	.scribes-toast-leave-active {
 		transition:
 			opacity 150ms ease,
 			transform 150ms ease;
 	}
 
-	.toast-enter-from,
-	.toast-leave-to {
+	.scribes-toast-enter-from,
+	.scribes-toast-leave-to {
 		opacity: 0;
 		transform: translateY(8px);
 	}
 
-	.toast-enter-to,
-	.toast-leave-from {
+	.scribes-toast-enter-to,
+	.scribes-toast-leave-from {
 		opacity: 1;
 		transform: translateY(0);
 	}
 
-	.toast-move {
+	.scribes-toast-move {
 		transition: transform 300ms ease;
 	}
 
-	.toast {
+	.scribes-toast {
 		position: fixed;
 		z-index: var(--z-toast);
 		right: 24px;
@@ -81,26 +81,26 @@
 		font-size: 0.73rem;
 	}
 
-	.toast--success {
+	.scribes-toast--success {
 		border-left-color: var(--teal);
 	}
 
-	.toast--danger {
+	.scribes-toast--danger {
 		border-left-color: var(--danger);
 	}
 
-	.toast > span {
+	.scribes-toast > span {
 		width: 7px;
 		height: 7px;
 		background: var(--teal);
 		border-radius: 50%;
 	}
 
-	.toast--danger > span {
+	.scribes-toast--danger > span {
 		background: var(--danger);
 	}
 
-	.toast button {
+	.scribes-toast button {
 		display: grid;
 		margin-left: auto;
 		padding: 3px;
