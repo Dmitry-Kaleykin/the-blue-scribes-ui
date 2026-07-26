@@ -98,7 +98,6 @@
 		width: v-bind('dropdownWidth');
 		opacity: 1;
 		transition: opacity 0.12s ease;
-		will-change: top, left;
 	}
 
 	.dropdown__inner {
