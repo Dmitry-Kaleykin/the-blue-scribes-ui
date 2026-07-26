@@ -64,7 +64,7 @@
 
 	.toast {
 		position: fixed;
-		z-index: 150;
+		z-index: var(--z-toast);
 		right: 24px;
 		bottom: 24px;
 		display: flex;

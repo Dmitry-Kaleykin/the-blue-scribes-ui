@@ -94,7 +94,7 @@
 <style scoped>
 	.dropdown {
 		position: fixed;
-		z-index: 999;
+		z-index: var(--z-dropdown);
 		width: v-bind('dropdownWidth');
 		opacity: 1;
 		transition: opacity 0.12s ease;

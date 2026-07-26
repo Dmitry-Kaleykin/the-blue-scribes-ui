@@ -462,7 +462,7 @@
 
 	.sidebar {
 		position: fixed;
-		z-index: 30;
+		z-index: var(--z-sidebar);
 		inset: 0 auto 0 0;
 		display: flex;
 		width: 264px;
@@ -643,7 +643,7 @@
 
 	.topbar {
 		position: sticky;
-		z-index: 20;
+		z-index: var(--z-topbar);
 		top: 0;
 		display: flex;
 		height: 56px;
@@ -711,7 +711,7 @@
 
 		.sidebar-scrim {
 			position: fixed;
-			z-index: 25;
+			z-index: var(--z-overlay);
 			inset: 0;
 			background: rgba(8, 17, 31, 0.45);
 		}

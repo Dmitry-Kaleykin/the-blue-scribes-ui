@@ -54,7 +54,7 @@
 <style scoped>
 	.modal-backdrop {
 		position: fixed;
-		z-index: 100;
+		z-index: var(--z-modal-backdrop);
 		inset: 0;
 		display: grid;
 		place-items: center;
@@ -78,7 +78,7 @@
 
 	.modal__header {
 		position: sticky;
-		z-index: 2;
+		z-index: var(--z-modal);
 		top: 0;
 		display: flex;
 		align-items: flex-start;
