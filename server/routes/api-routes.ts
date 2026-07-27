@@ -17,10 +17,13 @@ import type {
 	BootstrapResponse,
 	IndexProjectInput,
 	ProfileInput,
+	ProfileIndexingRules,
+	ProviderProfile,
 	ProjectSummary,
 	SearchInput,
 } from '../../shared/contracts.js';
 import { IndexingJobRegistry } from '../modules/jobs/indexing-job-registry.js';
+import { ProfileIndexingRulesCatalog } from '../modules/profiles/profile-indexing-rules-catalog.js';
 import { boolean, integer, record, stringList, text } from '../shared/values.js';
 
 export interface ApiRoutesOptions {
@@ -31,6 +34,7 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 	const profiles = new ProviderProfileService({
 		...(process.env.LM_STUDIO_API_KEY === undefined ? {} : { apiKey: process.env.LM_STUDIO_API_KEY }),
 	});
+	const profileIndexingRules = new ProfileIndexingRulesCatalog();
 	const targets = new ProjectRetrievalTargetService();
 	const recipes = new ProjectIndexingRecipeCatalog();
 	const search = new ProjectSearchService({
@@ -44,7 +48,7 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 	}));
 
 	app.get('/api/bootstrap', async (): Promise<BootstrapResponse> => ({
-		profiles: await profiles.list(),
+		profiles: await enrichedProfiles(),
 		projects: await projectSummaries(),
 		jobs: options.jobs.list(),
 		environment: {
@@ -53,7 +57,7 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 	}));
 
 	app.get('/api/profiles', async () => {
-		const items = await profiles.list();
+		const items = await enrichedProfiles();
 		return { count: items.length, profiles: items };
 	});
 
@@ -82,7 +86,7 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 		if (dimensions === undefined) {
 			throw new Error('Dimensions are required when automatic detection is disabled');
 		}
-		return profiles.set({
+		const saved = await profiles.set({
 			name: input.name,
 			embedding: {
 				provider: 'lm-studio',
@@ -103,6 +107,8 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 						},
 					}),
 		});
+		await profileIndexingRules.set(input.name, indexingRules(input));
+		return enrichProfile(saved);
 	});
 
 	app.post('/api/profiles/:name/test', async (request) => {
@@ -112,11 +118,16 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 
 	app.delete('/api/profiles/:name', async (request) => {
 		const params = record(request.params, 'parameters');
-		return profiles.remove(text(params.name, 'profile')!);
+		const name = text(params.name, 'profile')!;
+		const removed = await profiles.remove(name);
+		await profileIndexingRules.remove(name);
+		return removed;
 	});
 
 	app.post('/api/indexing-jobs', async (request, reply) => {
-		const job = options.jobs.startIndex(indexProjectInput(request.body));
+		const input = indexProjectInput(request.body);
+		const rules = await profileIndexingRules.read(input.profile);
+		const job = options.jobs.startIndex({ ...input, ...rules });
 		return reply.code(202).send(job);
 	});
 
@@ -280,6 +291,19 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 			}),
 		);
 	}
+
+	async function enrichedProfiles(): Promise<ProviderProfile[]> {
+		const items = await profiles.list();
+		return Promise.all(items.map(enrichProfile));
+	}
+
+	async function enrichProfile(profile: Omit<ProviderProfile, 'indexing'>): Promise<ProviderProfile> {
+		const indexing = await profileIndexingRules.read(profile.name);
+		return {
+			...profile,
+			...(indexing.include === undefined && indexing.exclude === undefined ? {} : { indexing }),
+		};
+	}
 }
 
 async function executablePath(name: string): Promise<string> {
@@ -342,6 +366,15 @@ function profileInput(value: unknown): ProfileInput {
 			: {
 					rerankingInstruction: text(body.rerankingInstruction, 'rerankingInstruction')!,
 				}),
+		...(stringList(body.include, 'include') === undefined ? {} : { include: stringList(body.include, 'include')! }),
+		...(stringList(body.exclude, 'exclude') === undefined ? {} : { exclude: stringList(body.exclude, 'exclude')! }),
+	};
+}
+
+function indexingRules(input: ProfileInput): ProfileIndexingRules {
+	return {
+		...(input.include === undefined ? {} : { include: input.include }),
+		...(input.exclude === undefined ? {} : { exclude: input.exclude }),
 	};
 }
 
@@ -368,8 +401,6 @@ function indexProjectInput(value: unknown): IndexProjectInput {
 						minimum: 1,
 					})!,
 				}),
-		...(stringList(body.include, 'include') === undefined ? {} : { include: stringList(body.include, 'include')! }),
-		...(stringList(body.exclude, 'exclude') === undefined ? {} : { exclude: stringList(body.exclude, 'exclude')! }),
 	};
 }
 

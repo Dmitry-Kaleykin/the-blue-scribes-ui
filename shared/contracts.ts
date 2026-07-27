@@ -14,10 +14,16 @@ export interface RerankingProfile {
 	instruction?: string;
 }
 
+export interface ProfileIndexingRules {
+	include?: readonly string[];
+	exclude?: readonly string[];
+}
+
 export interface ProviderProfile {
 	name: string;
 	embedding: EmbeddingProfile;
 	reranking?: RerankingProfile;
+	indexing?: ProfileIndexingRules;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -121,8 +127,6 @@ export interface IndexProjectInput {
 	windows1251?: boolean;
 	allowDirty?: boolean;
 	maximumChunkSize?: number;
-	include?: readonly string[];
-	exclude?: readonly string[];
 }
 
 export interface ProfileInput {
@@ -135,6 +139,8 @@ export interface ProfileInput {
 	embeddingSuffix?: string;
 	rerankingModel?: string;
 	rerankingInstruction?: string;
+	include?: readonly string[];
+	exclude?: readonly string[];
 }
 
 export interface SearchInput {

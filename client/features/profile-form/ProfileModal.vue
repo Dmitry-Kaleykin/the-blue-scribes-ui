@@ -1,7 +1,7 @@
 <template>
 	<BaseModal
 		:title="profile ? `Edit ${profile.name}` : 'New provider profile'"
-		description="Keep LM Studio model settings in one reusable profile."
+		description="Keep model and file-selection settings in one reusable profile."
 		wide
 		@close="emit('close')"
 	>
@@ -133,6 +133,31 @@
 				</div>
 			</div>
 
+			<div class="form-section">
+				<p class="eyebrow">Indexing</p>
+				<h3>File selection</h3>
+				<div class="form-grid form-grid--two">
+					<label class="field">
+						<span>Include patterns <em>optional</em></span>
+						<textarea
+							v-model="form.include"
+							rows="4"
+							placeholder="src/**&#10;design/**"
+						/>
+						<small>One glob per line. Leave empty to use normal discovery.</small>
+					</label>
+					<label class="field">
+						<span>Exclude patterns <em>optional</em></span>
+						<textarea
+							v-model="form.exclude"
+							rows="4"
+							placeholder="vendor/**&#10;dist/**"
+						/>
+						<small>Applied in addition to the normal ignore policy.</small>
+					</label>
+				</div>
+			</div>
+
 			<p
 				v-if="message"
 				class="feedback feedback--success"
@@ -218,6 +243,8 @@
 		embeddingSuffix: props.profile?.embedding.embeddingSuffix ?? '',
 		rerankingModel: props.profile?.reranking?.model ?? '',
 		rerankingInstruction: props.profile?.reranking?.instruction ?? '',
+		include: props.profile?.indexing?.include?.join('\n') ?? '',
+		exclude: props.profile?.indexing?.exclude?.join('\n') ?? '',
 	});
 	const models = ref<readonly ModelSummary[]>([]);
 	const loadingModels = ref(false);
@@ -227,6 +254,14 @@
 	const error = ref('');
 
 	const canTest = computed(() => props.profile !== undefined && !saving.value);
+
+	function lines(value: string): string[] | undefined {
+		const items = value
+			.split('\n')
+			.map((item) => item.trim())
+			.filter(Boolean);
+		return items.length === 0 ? undefined : items;
+	}
 
 	async function discoverModels(): Promise<void> {
 		loadingModels.value = true;
@@ -257,6 +292,8 @@
 				...(form.embeddingSuffix ? { embeddingSuffix: form.embeddingSuffix } : {}),
 				...(form.rerankingModel.trim() ? { rerankingModel: form.rerankingModel.trim() } : {}),
 				...(form.rerankingInstruction.trim() ? { rerankingInstruction: form.rerankingInstruction.trim() } : {}),
+				...(lines(form.include) === undefined ? {} : { include: lines(form.include) }),
+				...(lines(form.exclude) === undefined ? {} : { exclude: lines(form.exclude) }),
 			};
 			const saved = await api.saveProfile(input);
 			emit('saved', saved);

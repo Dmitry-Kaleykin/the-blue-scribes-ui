@@ -107,26 +107,6 @@
 						<small>Useful for local experiments; the recipe remembers this choice.</small>
 					</span>
 				</label>
-				<div class="form-grid form-grid--two">
-					<label class="field">
-						<span>Include patterns</span>
-						<textarea
-							v-model="form.include"
-							rows="4"
-							placeholder="src/**&#10;design/**"
-						/>
-						<small>One glob per line.</small>
-					</label>
-					<label class="field">
-						<span>Exclude patterns</span>
-						<textarea
-							v-model="form.exclude"
-							rows="4"
-							placeholder="vendor/**&#10;dist/**"
-						/>
-						<small>Applied in addition to normal ignore policy.</small>
-					</label>
-				</div>
 			</div>
 
 			<p
@@ -193,22 +173,12 @@
 		maximumChunkSize: 3000,
 		windows1251: false,
 		allowDirty: false,
-		include: '',
-		exclude: '',
 	});
 	const advanced = ref(false);
 	const submitting = ref(false);
 	const error = ref('');
 
 	const canSubmit = computed(() => form.root.trim().length > 0 && form.profile.length > 0 && !submitting.value);
-
-	function lines(value: string): string[] | undefined {
-		const items = value
-			.split('\n')
-			.map((item) => item.trim())
-			.filter(Boolean);
-		return items.length === 0 ? undefined : items;
-	}
 
 	async function submit(): Promise<void> {
 		submitting.value = true;
@@ -222,8 +192,6 @@
 				...(form.target.trim() ? { target: form.target.trim() } : {}),
 				...(form.windows1251 ? { windows1251: true } : {}),
 				...(form.allowDirty ? { allowDirty: true } : {}),
-				...(lines(form.include) === undefined ? {} : { include: lines(form.include) }),
-				...(lines(form.exclude) === undefined ? {} : { exclude: lines(form.exclude) }),
 			};
 			emit('started', await api.startIndex(input));
 		} catch (reason: unknown) {

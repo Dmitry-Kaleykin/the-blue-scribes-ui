@@ -2,8 +2,10 @@ import { randomUUID } from 'node:crypto';
 
 import { ProjectIndexingService, type ProjectIndexingEvent, type ProjectIndexingOutcome } from 'the-blue-scribes';
 
-import type { IndexingJob, IndexProjectInput } from '../../../shared/contracts.js';
+import type { IndexingJob, IndexProjectInput, ProfileIndexingRules } from '../../../shared/contracts.js';
 import { serializeError } from '../../shared/serialize-error.js';
+
+type IndexingJobInput = IndexProjectInput & ProfileIndexingRules;
 
 interface InternalJob {
 	snapshot: IndexingJob;
@@ -50,7 +52,7 @@ export class IndexingJobRegistry {
 		return () => job.listeners.delete(listener);
 	}
 
-	startIndex(input: IndexProjectInput): IndexingJob {
+	startIndex(input: IndexingJobInput): IndexingJob {
 		const projectKey = input.root.trim();
 		this.#assertAvailable(projectKey);
 		const job = this.#create('index', projectKey, input.target ?? input.root);

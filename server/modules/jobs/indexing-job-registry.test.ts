@@ -8,6 +8,26 @@ import { IndexingJobRegistry } from './indexing-job-registry.js';
 type IndexOptions = Parameters<ProjectIndexingService['index']>[0];
 
 describe('IndexingJobRegistry', () => {
+	it('passes profile file rules to the indexing service', () => {
+		let options: IndexOptions | undefined;
+		const service = {
+			index(input: IndexOptions): Promise<ProjectIndexingOutcome> {
+				options = input;
+				return new Promise(() => {});
+			},
+		} as unknown as ProjectIndexingService;
+		const jobs = new IndexingJobRegistry({ indexingService: service });
+
+		jobs.startIndex({
+			...input,
+			include: ['src/**', 'docs/**'],
+			exclude: ['dist/**'],
+		});
+
+		assert.deepEqual(options?.include, ['src/**', 'docs/**']);
+		assert.deepEqual(options?.exclude, ['dist/**']);
+	});
+
 	it('includes the current job snapshot in progress events', () => {
 		let options: IndexOptions | undefined;
 		const service = {

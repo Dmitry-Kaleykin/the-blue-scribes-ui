@@ -4,7 +4,9 @@
 			<div>
 				<p class="eyebrow">Reusable configuration</p>
 				<h1>Provider profiles</h1>
-				<p class="page-lead">Configure embedding and reranking once, then reuse the profile for every project.</p>
+				<p class="page-lead">
+					Configure embedding, reranking, and file-selection rules once, then reuse them for every project.
+				</p>
 			</div>
 			<button
 				class="button button--primary"
@@ -51,6 +53,10 @@
 					<div>
 						<dt>Reranker</dt>
 						<dd>{{ profile.reranking?.model ?? 'disabled' }}</dd>
+					</div>
+					<div>
+						<dt>File rules</dt>
+						<dd>{{ indexingRuleSummary(profile) }}</dd>
 					</div>
 				</dl>
 				<p class="profile-card__url">
@@ -119,6 +125,15 @@
 		test: [profile: ProviderProfile];
 		remove: [profile: ProviderProfile];
 	}>();
+
+	function indexingRuleSummary(profile: ProviderProfile): string {
+		const includes = profile.indexing?.include?.length ?? 0;
+		const excludes = profile.indexing?.exclude?.length ?? 0;
+		if (includes === 0 && excludes === 0) {
+			return 'default discovery';
+		}
+		return `${includes} include · ${excludes} exclude`;
+	}
 </script>
 
 <style scoped>
