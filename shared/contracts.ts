@@ -78,7 +78,7 @@ export interface BootstrapResponse {
 	};
 }
 
-export type IndexingJobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+export type IndexingJobStatus = 'queued' | 'running' | 'cancelling' | 'completed' | 'failed' | 'cancelled';
 
 export interface IndexingJob {
 	id: string;

@@ -116,9 +116,13 @@
 					class="icon-button"
 					type="button"
 					aria-label="Refresh workspace"
-					@click="load"
+					:disabled="refreshing"
+					@click="refresh"
 				>
-					<RefreshCw :size="18" />
+					<RefreshCw
+						:class="{ spin: refreshing }"
+						:size="18"
+					/>
 				</button>
 			</header>
 
@@ -245,6 +249,7 @@
 	const selectedProjectId = ref('');
 	const initialSearchProject = ref('');
 	const loading = ref(true);
+	const refreshing = ref(false);
 	const loadError = ref('');
 	const mobileMenu = ref(false);
 	const indexModal = ref(false);
@@ -257,7 +262,9 @@
 		data.value.projects.find(({ projectIdentifier }) => projectIdentifier === selectedProjectId.value),
 	);
 	const activeJobCount = computed(
-		() => data.value.jobs.filter(({ status }) => status === 'running' || status === 'queued').length,
+		() =>
+			data.value.jobs.filter(({ status }) => status === 'running' || status === 'queued' || status === 'cancelling')
+				.length,
 	);
 
 	onMounted(load);
@@ -273,7 +280,7 @@
 		try {
 			data.value = await api.bootstrap();
 			for (const job of data.value.jobs) {
-				if (job.status === 'running' || job.status === 'queued') {
+				if (job.status === 'running' || job.status === 'queued' || job.status === 'cancelling') {
 					watchJob(job.id);
 				}
 			}
@@ -284,6 +291,30 @@
 			loadError.value = reason instanceof Error ? reason.message : String(reason);
 		} finally {
 			loading.value = false;
+		}
+	}
+
+	async function refresh(): Promise<void> {
+		if (refreshing.value) {
+			return;
+		}
+		refreshing.value = true;
+		try {
+			if (activeJobCount.value > 0) {
+				const result = await api.jobs();
+				data.value = { ...data.value, jobs: result.jobs };
+				for (const job of result.jobs) {
+					if (job.status === 'running' || job.status === 'queued' || job.status === 'cancelling') {
+						watchJob(job.id);
+					}
+				}
+			} else {
+				await load();
+			}
+		} catch (reason: unknown) {
+			showFailure(reason);
+		} finally {
+			refreshing.value = false;
 		}
 	}
 
@@ -352,10 +383,22 @@
 
 	async function cancelJob(id: string): Promise<void> {
 		try {
-			await api.cancelJob(id);
+			const cancelled = await api.cancelJob(id);
+			updateJob(cancelled);
 		} catch (reason: unknown) {
 			showFailure(reason);
 		}
+	}
+
+	function updateJob(job: IndexingJob): void {
+		const index = data.value.jobs.findIndex(({ id }) => id === job.id);
+		const jobs = [...data.value.jobs];
+		if (index === -1) {
+			jobs.unshift(job);
+		} else {
+			jobs[index] = job;
+		}
+		data.value = { ...data.value, jobs };
 	}
 
 	async function profileSaved(profile: ProviderProfile): Promise<void> {

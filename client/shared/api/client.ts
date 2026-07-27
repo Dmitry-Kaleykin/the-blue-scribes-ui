@@ -49,6 +49,7 @@ export const api = {
 			method: 'POST',
 			body: JSON.stringify(input),
 		}),
+	jobs: () => request<{ jobs: readonly IndexingJob[] }>('/api/indexing-jobs'),
 	reindex: (projectIdentifier: string) =>
 		request<IndexingJob>(`/api/projects/${encodeURIComponent(projectIdentifier)}/reindex`, { method: 'POST' }),
 	cancelJob: (id: string) =>
@@ -91,9 +92,6 @@ export function subscribeToJob(id: string, onEvent: (event: unknown) => void): (
 	const source = new EventSource(`/api/indexing-jobs/${encodeURIComponent(id)}/events`);
 	source.onmessage = ({ data }) => {
 		onEvent(JSON.parse(data) as unknown);
-	};
-	source.onerror = () => {
-		source.close();
 	};
 	return () => source.close();
 }

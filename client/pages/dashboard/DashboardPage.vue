@@ -223,9 +223,13 @@
 		cancelJob: [id: string];
 	}>();
 
-	const activeJobs = computed(() => props.jobs.filter(({ status }) => status === 'running' || status === 'queued'));
+	const activeJobs = computed(() =>
+		props.jobs.filter(({ status }) => status === 'running' || status === 'queued' || status === 'cancelling'),
+	);
 	const recentJobs = computed(() =>
-		props.jobs.filter(({ status }) => status !== 'running' && status !== 'queued').slice(0, 3),
+		props.jobs
+			.filter(({ status }) => status !== 'running' && status !== 'queued' && status !== 'cancelling')
+			.slice(0, 3),
 	);
 	const readyBuilds = computed(() =>
 		props.projects.reduce((total, project) => total + project.buildsByStatus.ready, 0),

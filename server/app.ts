@@ -15,6 +15,10 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
 	const app = Fastify({ logger: false });
 	const jobs = new IndexingJobRegistry();
 
+	app.addHook('preClose', async () => {
+		jobs.cancelAll();
+	});
+
 	app.addHook('onRequest', async (request, reply) => {
 		const host = request.headers.host ?? '';
 		if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/u.test(host)) {

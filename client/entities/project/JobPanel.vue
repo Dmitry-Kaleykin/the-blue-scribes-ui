@@ -5,7 +5,7 @@
 			:class="`job-panel__icon--${job.status}`"
 		>
 			<LoaderCircle
-				v-if="job.status === 'running' || job.status === 'queued'"
+				v-if="job.status === 'running' || job.status === 'queued' || job.status === 'cancelling'"
 				class="spin"
 				:size="20"
 			/>
@@ -113,13 +113,18 @@
 			({
 				queued: 'neutral',
 				running: 'info',
+				cancelling: 'warning',
 				completed: 'success',
 				failed: 'danger',
 				cancelled: 'warning',
 			})[props.job.status] as 'neutral' | 'info' | 'success' | 'danger' | 'warning',
 	);
 
-	const phase = computed(() => props.job.progress?.phase?.replaceAll('-', ' ') ?? props.job.status);
+	const phase = computed(() =>
+		props.job.status === 'running'
+			? (props.job.progress?.phase?.replaceAll('-', ' ') ?? props.job.status)
+			: props.job.status,
+	);
 </script>
 
 <style scoped>

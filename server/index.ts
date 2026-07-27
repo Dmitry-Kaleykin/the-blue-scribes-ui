@@ -23,9 +23,27 @@ if (!development && process.env.SCRIBES_UI_OPEN !== '0') {
 	await open(address);
 }
 
-const shutdown = async () => {
-	await app.close();
-	process.exit(0);
+let shutdownPromise: Promise<void> | undefined;
+const shutdown = (): Promise<void> => {
+	shutdownPromise ??= (async () => {
+		const forceClose = setTimeout(() => {
+			app.server.closeAllConnections();
+		}, 2_000);
+		const forceExit = setTimeout(() => {
+			console.error('The UI server did not stop cleanly; forcing it to exit.');
+			process.exit(1);
+		}, 5_000);
+		forceClose.unref();
+		forceExit.unref();
+		try {
+			await app.close();
+			clearTimeout(forceClose);
+		} catch (error: unknown) {
+			console.error(error);
+			process.exitCode = 1;
+		}
+	})();
+	return shutdownPromise;
 };
 
 process.once('SIGINT', () => void shutdown());

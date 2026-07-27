@@ -88,14 +88,26 @@ export class IndexingJobRegistry {
 
 	cancel(id: string): IndexingJob {
 		const job = this.#required(id);
+		if (job.snapshot.status === 'cancelling') {
+			return structuredClone(job.snapshot);
+		}
 		if (job.snapshot.status !== 'running' && job.snapshot.status !== 'queued') {
 			return structuredClone(job.snapshot);
 		}
-		job.controller.abort(new Error('Indexing cancelled from the UI'));
-		job.snapshot.status = 'cancelled';
-		job.snapshot.completedAt = new Date().toISOString();
-		this.#publish(job, { type: 'job-cancelled', job: job.snapshot });
+		job.snapshot.status = 'cancelling';
+		this.#publish(job, { type: 'job-cancelling', job: job.snapshot });
+		// Abort listeners run synchronously. Defer them so the cancellation response
+		// can reach the browser even if cleanup is slow.
+		setImmediate(() => job.controller.abort(new Error('Indexing cancelled from the UI')));
 		return structuredClone(job.snapshot);
+	}
+
+	cancelAll(): void {
+		for (const { snapshot } of this.#jobs.values()) {
+			if (snapshot.status === 'running' || snapshot.status === 'queued') {
+				this.cancel(snapshot.id);
+			}
+		}
 	}
 
 	#create(kind: IndexingJob['kind'], projectKey: string, label: string): InternalJob {
@@ -125,7 +137,8 @@ export class IndexingJobRegistry {
 
 		try {
 			const outcome = await operation();
-			if (job.controller.signal.aborted) {
+			if (job.controller.signal.aborted || this.#isCancelling(job)) {
+				this.#completeCancellation(job);
 				return;
 			}
 			job.snapshot.status = 'completed';
@@ -138,7 +151,8 @@ export class IndexingJobRegistry {
 			};
 			this.#publish(job, { type: 'job-completed', job: job.snapshot });
 		} catch (error: unknown) {
-			if (job.controller.signal.aborted) {
+			if (job.controller.signal.aborted || this.#isCancelling(job)) {
+				this.#completeCancellation(job);
 				return;
 			}
 			const failure = serializeError(error);
@@ -154,6 +168,9 @@ export class IndexingJobRegistry {
 	}
 
 	#onProgress(job: InternalJob, event: ProjectIndexingEvent): void {
+		if (job.snapshot.status === 'cancelling' || job.snapshot.status === 'cancelled') {
+			return;
+		}
 		if (event.type === 'indexing-progress') {
 			job.snapshot.progress = event.progress;
 			const now = Date.now();
@@ -165,27 +182,42 @@ export class IndexingJobRegistry {
 			job.previousPhase = event.progress.phase;
 			job.lastProgressAt = now;
 		}
-		this.#publish(job, event);
+		this.#publish(job, { ...event, job: job.snapshot });
 	}
 
 	#publish(job: InternalJob, event: unknown): void {
-		job.events.push(event);
+		const snapshot = structuredClone(event);
+		job.events.push(snapshot);
 		if (job.events.length > 500) {
 			job.events.shift();
 		}
 		for (const listener of job.listeners) {
-			listener(event);
+			listener(structuredClone(snapshot));
 		}
 	}
 
 	#assertAvailable(projectKey: string): void {
 		const active = [...this.#jobs.values()].find(
 			({ snapshot }) =>
-				snapshot.projectKey === projectKey && (snapshot.status === 'queued' || snapshot.status === 'running'),
+				snapshot.projectKey === projectKey &&
+				(snapshot.status === 'queued' || snapshot.status === 'running' || snapshot.status === 'cancelling'),
 		);
 		if (active !== undefined) {
 			throw new Error(`An indexing job is already running for ${projectKey}`);
 		}
+	}
+
+	#completeCancellation(job: InternalJob): void {
+		if (job.snapshot.status === 'cancelled') {
+			return;
+		}
+		job.snapshot.status = 'cancelled';
+		job.snapshot.completedAt = new Date().toISOString();
+		this.#publish(job, { type: 'job-cancelled', job: job.snapshot });
+	}
+
+	#isCancelling(job: InternalJob): boolean {
+		return job.snapshot.status === 'cancelling';
 	}
 
 	#required(id: string): InternalJob {

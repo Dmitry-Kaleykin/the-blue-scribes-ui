@@ -147,15 +147,38 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 		const send = (event: unknown) => {
 			reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
 		};
-		for (const event of options.jobs.events(id)) {
-			send(event);
-		}
-		const unsubscribe = options.jobs.subscribe(id, send);
+		let closed = false;
 		const heartbeat = setInterval(() => reply.raw.write(': keep-alive\n\n'), 15_000);
-		request.raw.on('close', () => {
+		const unsubscribe = options.jobs.subscribe(id, (event) => {
+			if (!closed) {
+				send(event);
+				const job = options.jobs.get(id);
+				if (job.status !== 'running' && job.status !== 'queued' && job.status !== 'cancelling') {
+					close();
+				}
+			}
+		});
+		function close(): void {
+			if (closed) {
+				return;
+			}
+			closed = true;
 			clearInterval(heartbeat);
 			unsubscribe();
-		});
+			reply.raw.end();
+		}
+		request.raw.on('close', close);
+		for (const event of options.jobs.events(id)) {
+			if (closed) {
+				break;
+			}
+			send(event);
+		}
+		const job = options.jobs.get(id);
+		if (job.status !== 'running' && job.status !== 'queued' && job.status !== 'cancelling') {
+			close();
+			return;
+		}
 	});
 
 	app.post('/api/projects/:id/reindex', async (request, reply) => {
