@@ -74,6 +74,15 @@
 			>
 				{{ job.error.message }}
 			</p>
+			<button
+				v-if="interruptedBuildId"
+				class="button button--secondary button--small job-panel__recovery"
+				type="button"
+				@click="emit('recover', interruptedBuildId)"
+			>
+				<RotateCcw :size="14" />
+				Remove interrupted build
+			</button>
 			<p
 				v-if="job.result"
 				class="job-panel__result"
@@ -94,7 +103,7 @@
 
 <script setup lang="ts">
 	import { computed } from 'vue';
-	import { Ban, CheckCircle2, FileCode2, LoaderCircle, XCircle } from '@lucide/vue';
+	import { Ban, CheckCircle2, FileCode2, LoaderCircle, RotateCcw, XCircle } from '@lucide/vue';
 
 	import type { IndexingJob } from '../../../shared/contracts';
 	import StatusPill from '../../shared/components/StatusPill.vue';
@@ -105,6 +114,7 @@
 
 	const emit = defineEmits<{
 		cancel: [id: string];
+		recover: [indexBuildId: string];
 	}>();
 
 	const percent = computed(() => {
@@ -146,6 +156,17 @@
 			props.job.progress.completed === 0 &&
 			(props.job.progress.total ?? 0) > 0,
 	);
+	const interruptedBuildId = computed(() => {
+		if (
+			props.job.status !== 'failed' ||
+			props.job.error?.code !== 'build-exists' ||
+			props.job.error.details?.status !== 'building'
+		) {
+			return undefined;
+		}
+		const id = props.job.error.details.indexBuildId;
+		return typeof id === 'string' ? id : undefined;
+	});
 
 	const statusTone = computed(
 		() =>
@@ -286,6 +307,10 @@
 		margin: 7px 0 0;
 		color: var(--muted);
 		font-size: 0.64rem;
+	}
+
+	.job-panel__recovery {
+		margin-top: 9px;
 	}
 
 	.job-panel__result {

@@ -11,6 +11,7 @@ import {
 	ProjectRetrievalTargetService,
 	ProjectSearchService,
 	ProviderProfileService,
+	SqliteStorageProvider,
 } from 'the-blue-scribes';
 
 import type {
@@ -143,6 +144,80 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 	app.delete('/api/indexing-jobs/:id', async (request) => {
 		const params = record(request.params, 'parameters');
 		return options.jobs.cancel(text(params.id, 'job')!);
+	});
+
+	app.delete('/api/index-builds/:id', async (request) => {
+		const params = record(request.params, 'parameters');
+		const id = text(params.id, 'index build')!;
+		const projects = await listIndexedProjects();
+
+		for (const project of projects) {
+			const active = options.jobs
+				.list()
+				.some(
+					(job) =>
+						(job.status === 'running' || job.status === 'queued' || job.status === 'cancelling') &&
+						(job.projectKey === project.projectIdentifier || job.projectKey === project.root),
+				);
+			if (active) {
+				continue;
+			}
+
+			const storage = new SqliteStorageProvider(project.databasePath);
+			try {
+				const build = (await storage.listBuilds()).find(({ indexBuildId }) => indexBuildId === id);
+				if (build === undefined) {
+					continue;
+				}
+				if (build.status === 'ready') {
+					throw new Error(`Ready index build ${id} cannot be removed as an interrupted build`);
+				}
+				await storage.deleteBuild(id);
+				return {
+					indexBuildId: id,
+					previousStatus: build.status,
+					projectIdentifier: project.projectIdentifier,
+				};
+			} finally {
+				await storage.close();
+			}
+		}
+
+		throw new Error(`Interrupted index build ${id} was not found or still has an active indexing job`);
+	});
+
+	app.delete('/api/projects/:id/interrupted-builds', async (request) => {
+		const params = record(request.params, 'parameters');
+		const id = text(params.id, 'project')!;
+		const project = (await listIndexedProjects()).find(({ projectIdentifier }) => projectIdentifier === id);
+		if (project === undefined) {
+			throw new Error(`Indexed project ${id} was not found`);
+		}
+		const active = options.jobs
+			.list()
+			.some(
+				(job) =>
+					(job.status === 'running' || job.status === 'queued' || job.status === 'cancelling') &&
+					(job.projectKey === project.projectIdentifier || job.projectKey === project.root),
+			);
+		if (active) {
+			throw new Error(`An indexing job is still active for ${project.root ?? project.projectIdentifier}`);
+		}
+
+		const storage = new SqliteStorageProvider(project.databasePath);
+		try {
+			const interrupted = (await storage.listBuilds()).filter(({ status }) => status === 'building');
+			for (const build of interrupted) {
+				await storage.deleteBuild(build.indexBuildId);
+			}
+			return {
+				projectIdentifier: project.projectIdentifier,
+				count: interrupted.length,
+				indexBuildIds: interrupted.map(({ indexBuildId }) => indexBuildId),
+			};
+		} finally {
+			await storage.close();
+		}
 	});
 
 	app.get('/api/indexing-jobs/:id/events', async (request, reply) => {

@@ -66,6 +66,7 @@
 					:key="job.id"
 					:job="job"
 					@cancel="emit('cancelJob', $event)"
+					@recover="emit('recoverBuild', $event)"
 				/>
 			</div>
 		</section>
@@ -221,6 +222,7 @@
 		search: [project: ProjectSummary];
 		profiles: [];
 		cancelJob: [id: string];
+		recoverBuild: [indexBuildId: string];
 	}>();
 
 	const activeJobs = computed(() =>

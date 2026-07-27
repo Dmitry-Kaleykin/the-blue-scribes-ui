@@ -32,6 +32,28 @@
 			</div>
 		</header>
 
+		<section
+			v-if="project.buildsByStatus.building > 0"
+			class="interrupted-builds"
+		>
+			<AlertTriangle :size="20" />
+			<div>
+				<strong>Interrupted indexing build</strong>
+				<p>
+					{{ project.buildsByStatus.building }}
+					{{ project.buildsByStatus.building === 1 ? 'build is' : 'builds are' }} still marked as running.
+				</p>
+			</div>
+			<button
+				class="button button--secondary button--small"
+				type="button"
+				@click="emit('recoverInterrupted')"
+			>
+				<RotateCcw :size="15" />
+				Remove interrupted build
+			</button>
+		</section>
+
 		<section class="metric-grid metric-grid--three">
 			<article class="metric-card">
 				<span class="metric-card__icon"><Database :size="20" /></span>
@@ -229,6 +251,7 @@
 <script setup lang="ts">
 	import { computed, ref } from 'vue';
 	import {
+		AlertTriangle,
 		ArrowLeft,
 		Check,
 		Clipboard,
@@ -237,6 +260,7 @@
 		GitBranch,
 		Pencil,
 		RefreshCw,
+		RotateCcw,
 		Search,
 		TerminalSquare,
 		Trash2,
@@ -257,6 +281,7 @@
 		activate: [target: string];
 		rename: [target: string, name: string];
 		remove: [];
+		recoverInterrupted: [];
 	}>();
 
 	const copied = ref(false);
@@ -371,6 +396,32 @@
 		display: flex;
 		gap: 8px;
 		margin-left: auto;
+	}
+
+	.interrupted-builds {
+		display: flex;
+		align-items: center;
+		gap: 13px;
+		margin-bottom: 20px;
+		padding: 14px 16px;
+		color: #7a561c;
+		background: var(--amber-pale);
+		border: 1px solid #e8d5ac;
+		border-radius: 8px;
+	}
+
+	.interrupted-builds div {
+		flex: 1;
+	}
+
+	.interrupted-builds strong {
+		display: block;
+		font-size: 0.78rem;
+	}
+
+	.interrupted-builds p {
+		margin: 2px 0 0;
+		font-size: 0.68rem;
 	}
 
 	.detail-grid {
@@ -498,6 +549,11 @@
 		.danger-zone {
 			align-items: stretch;
 			flex-direction: column;
+		}
+
+		.interrupted-builds {
+			align-items: flex-start;
+			flex-wrap: wrap;
 		}
 	}
 </style>

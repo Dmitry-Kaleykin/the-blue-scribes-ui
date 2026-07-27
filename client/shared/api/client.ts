@@ -57,6 +57,18 @@ export const api = {
 		request<IndexingJob>(`/api/indexing-jobs/${encodeURIComponent(id)}`, {
 			method: 'DELETE',
 		}),
+	deleteInterruptedBuild: (id: string) =>
+		request<{
+			indexBuildId: string;
+			previousStatus: 'building' | 'failed' | 'cancelled';
+			projectIdentifier: string;
+		}>(`/api/index-builds/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+	deleteProjectInterruptedBuilds: (projectIdentifier: string) =>
+		request<{
+			projectIdentifier: string;
+			count: number;
+			indexBuildIds: readonly string[];
+		}>(`/api/projects/${encodeURIComponent(projectIdentifier)}/interrupted-builds`, { method: 'DELETE' }),
 	search: (projectIdentifier: string, input: SearchInput) =>
 		request<SearchResponse>(`/api/projects/${encodeURIComponent(projectIdentifier)}/search`, {
 			method: 'POST',

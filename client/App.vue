@@ -161,6 +161,7 @@
 					@search="openSearch"
 					@profiles="navigate('profiles')"
 					@cancel-job="cancelJob"
+					@recover-build="recoverBuild"
 				/>
 				<ProfilesPage
 					v-else-if="activeView === 'profiles'"
@@ -186,6 +187,7 @@
 					@activate="activateTarget"
 					@rename="renameTarget"
 					@remove="removeProject"
+					@recover-interrupted="recoverProjectBuilds"
 				/>
 			</template>
 		</section>
@@ -384,6 +386,49 @@
 		try {
 			const cancelled = await api.cancelJob(id);
 			updateJob(cancelled);
+		} catch (reason: unknown) {
+			showFailure(reason);
+		}
+	}
+
+	async function recoverBuild(indexBuildId: string): Promise<void> {
+		if (
+			!window.confirm(
+				'Remove this interrupted build so indexing can be retried? Continue only if no other Scribes process is indexing this project.',
+			)
+		) {
+			return;
+		}
+		try {
+			await api.deleteInterruptedBuild(indexBuildId);
+			await load();
+			showToast('success', 'The interrupted build was removed. You can retry indexing now.');
+		} catch (reason: unknown) {
+			showFailure(reason);
+		}
+	}
+
+	async function recoverProjectBuilds(): Promise<void> {
+		const project = selectedProject.value;
+		if (!project) {
+			return;
+		}
+		if (
+			!window.confirm(
+				`Remove ${project.buildsByStatus.building} interrupted build(s) from this project? Continue only if no other Scribes process is indexing it.`,
+			)
+		) {
+			return;
+		}
+		try {
+			const result = await api.deleteProjectInterruptedBuilds(project.projectIdentifier);
+			await load();
+			showToast(
+				'success',
+				result.count === 0
+					? 'No interrupted builds remained.'
+					: `${result.count} interrupted build(s) removed. You can retry indexing now.`,
+			);
 		} catch (reason: unknown) {
 			showFailure(reason);
 		}
