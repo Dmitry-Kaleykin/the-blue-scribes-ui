@@ -44,15 +44,23 @@
 				v-if="job.progress"
 				class="job-panel__details"
 			>
-				<span v-if="percent !== undefined">{{ percent }}%</span>
+				<span v-if="percent !== undefined">{{ percentLabel }}</span>
 				<span v-if="job.progress.completed !== undefined && job.progress.total !== undefined">
-					{{ job.progress.completed.toLocaleString() }} /
-					{{ job.progress.total.toLocaleString() }}
+					{{ job.progress.completed.toLocaleString() }} / {{ job.progress.total.toLocaleString() }} {{ progressUnit }}
+				</span>
+				<span v-else-if="job.progress.discoveredFiles !== undefined">
+					{{ job.progress.discoveredFiles.toLocaleString() }} files discovered
 				</span>
 				<span v-if="job.progress.reusedEmbeddings !== undefined">
 					{{ job.progress.reusedEmbeddings.toLocaleString() }} embeddings reused
 				</span>
 			</div>
+			<p
+				v-if="waitingForEmbeddingBatch"
+				class="job-panel__waiting"
+			>
+				Waiting for the first embedding batch from LM Studio…
+			</p>
 			<p
 				v-if="job.progress?.currentPath"
 				class="job-panel__path"
@@ -107,6 +115,37 @@
 		}
 		return Math.max(0, Math.min(100, Math.round((completed / total) * 100)));
 	});
+	const percentLabel = computed(() => {
+		if (percent.value === undefined) {
+			return '';
+		}
+		if ((props.job.progress?.completed ?? 0) === 0) {
+			return 'Starting…';
+		}
+		if (percent.value === 0 && (props.job.progress?.completed ?? 0) > 0) {
+			return '<1%';
+		}
+		return `${percent.value}%`;
+	});
+	const progressUnit = computed(() => {
+		switch (props.job.progress?.phase) {
+			case 'discovery':
+			case 'processing':
+				return 'files';
+			case 'embedding':
+			case 'storage':
+				return 'chunks';
+			default:
+				return 'items';
+		}
+	});
+	const waitingForEmbeddingBatch = computed(
+		() =>
+			props.job.status === 'running' &&
+			props.job.progress?.phase === 'embedding' &&
+			props.job.progress.completed === 0 &&
+			(props.job.progress.total ?? 0) > 0,
+	);
 
 	const statusTone = computed(
 		() =>
@@ -120,11 +159,25 @@
 			})[props.job.status] as 'neutral' | 'info' | 'success' | 'danger' | 'warning',
 	);
 
-	const phase = computed(() =>
-		props.job.status === 'running'
-			? (props.job.progress?.phase?.replaceAll('-', ' ') ?? props.job.status)
-			: props.job.status,
-	);
+	const phase = computed(() => {
+		if (props.job.status !== 'running') {
+			return props.job.status;
+		}
+		return (
+			{
+				'source-inspection': 'Inspecting source',
+				discovery: 'Discovering files',
+				'preparing-build': 'Preparing index',
+				processing: 'Processing files',
+				embedding: 'Generating embeddings',
+				storage: 'Storing embeddings',
+				finalizing: 'Finalizing index',
+				complete: 'Complete',
+			}[props.job.progress?.phase ?? ''] ??
+			props.job.progress?.phase?.replaceAll('-', ' ') ??
+			props.job.status
+		);
+	});
 </script>
 
 <style scoped>
@@ -227,6 +280,12 @@
 		font-size: 0.61rem;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	.job-panel__waiting {
+		margin: 7px 0 0;
+		color: var(--muted);
+		font-size: 0.64rem;
 	}
 
 	.job-panel__result {

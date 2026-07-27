@@ -50,6 +50,7 @@ export const api = {
 			body: JSON.stringify(input),
 		}),
 	jobs: () => request<{ jobs: readonly IndexingJob[] }>('/api/indexing-jobs'),
+	job: (id: string) => request<IndexingJob>(`/api/indexing-jobs/${encodeURIComponent(id)}`),
 	reindex: (projectIdentifier: string) =>
 		request<IndexingJob>(`/api/projects/${encodeURIComponent(projectIdentifier)}/reindex`, { method: 'POST' }),
 	cancelJob: (id: string) =>

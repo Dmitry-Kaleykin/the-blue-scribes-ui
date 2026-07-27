@@ -343,34 +343,33 @@
 		if (subscriptions.has(id)) {
 			return;
 		}
-		subscriptions.set(
-			id,
-			subscribeToJob(id, (event) => {
-				const value = event as { job?: IndexingJob };
-				if (!value.job) {
-					return;
-				}
-				const index = data.value.jobs.findIndex((job) => job.id === value.job!.id);
-				if (index === -1) {
-					data.value = { ...data.value, jobs: [value.job, ...data.value.jobs] };
-				} else {
-					const jobs = [...data.value.jobs];
-					jobs[index] = value.job;
-					data.value = { ...data.value, jobs };
-				}
-				if (value.job.status === 'completed' || value.job.status === 'failed' || value.job.status === 'cancelled') {
-					subscriptions.get(id)?.();
-					subscriptions.delete(id);
-					showToast(
-						value.job.status === 'completed' ? 'success' : 'danger',
-						value.job.status === 'completed'
-							? `${value.job.label} was indexed successfully.`
-							: (value.job.error?.message ?? `Indexing ${value.job.status}.`),
-					);
-					void load();
-				}
-			}),
-		);
+		let polling = false;
+		const stopEvents = subscribeToJob(id, (event) => {
+			const value = event as { job?: IndexingJob };
+			if (value.job) {
+				receiveJob(value.job);
+			}
+		});
+		const poll = window.setInterval(() => {
+			if (polling) {
+				return;
+			}
+			polling = true;
+			void api
+				.job(id)
+				.then(receiveJob)
+				.catch(() => {
+					// The event stream remains the primary transport. A later poll
+					// can recover if this lightweight fallback request fails.
+				})
+				.finally(() => {
+					polling = false;
+				});
+		}, 2_000);
+		subscriptions.set(id, () => {
+			stopEvents();
+			window.clearInterval(poll);
+		});
 	}
 
 	function jobStarted(job: IndexingJob): void {
@@ -399,6 +398,26 @@
 			jobs[index] = job;
 		}
 		data.value = { ...data.value, jobs };
+	}
+
+	function receiveJob(job: IndexingJob): void {
+		updateJob(job);
+		if (job.status !== 'completed' && job.status !== 'failed' && job.status !== 'cancelled') {
+			return;
+		}
+		const stop = subscriptions.get(job.id);
+		if (stop === undefined) {
+			return;
+		}
+		stop();
+		subscriptions.delete(job.id);
+		showToast(
+			job.status === 'completed' ? 'success' : 'danger',
+			job.status === 'completed'
+				? `${job.label} was indexed successfully.`
+				: (job.error?.message ?? `Indexing ${job.status}.`),
+		);
+		void load();
 	}
 
 	async function profileSaved(profile: ProviderProfile): Promise<void> {
