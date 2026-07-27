@@ -394,7 +394,7 @@
 	async function recoverBuild(indexBuildId: string): Promise<void> {
 		if (
 			!window.confirm(
-				'Remove this interrupted build so indexing can be retried? Continue only if no other Scribes process is indexing this project.',
+				'Clean up this unfinished build? This does not remove the project or start a new build. Continue only if no other Scribes process is indexing this project.',
 			)
 		) {
 			return;
@@ -402,7 +402,7 @@
 		try {
 			await api.deleteInterruptedBuild(indexBuildId);
 			await load();
-			showToast('success', 'The interrupted build was removed. You can retry indexing now.');
+			showToast('success', 'The unfinished build was cleaned up. No new build was started.');
 		} catch (reason: unknown) {
 			showFailure(reason);
 		}
@@ -415,7 +415,7 @@
 		}
 		if (
 			!window.confirm(
-				`Remove ${project.buildsByStatus.building} interrupted build(s) from this project? Continue only if no other Scribes process is indexing it.`,
+				`Clean up ${project.buildsByStatus.building} unfinished build(s)? This does not remove the project or start indexing. Continue only if no other Scribes process is indexing it.`,
 			)
 		) {
 			return;
@@ -426,8 +426,8 @@
 			showToast(
 				'success',
 				result.count === 0
-					? 'No interrupted builds remained.'
-					: `${result.count} interrupted build(s) removed. You can retry indexing now.`,
+					? 'No unfinished builds remained.'
+					: `${result.count} unfinished build(s) cleaned up. No new build was started.`,
 			);
 		} catch (reason: unknown) {
 			showFailure(reason);

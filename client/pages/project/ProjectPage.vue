@@ -38,30 +38,21 @@
 		>
 			<AlertTriangle :size="20" />
 			<div>
-				<strong>Interrupted indexing build</strong>
+				<strong>Unfinished indexing build</strong>
 				<p>
 					{{ project.buildsByStatus.building }}
-					{{ project.buildsByStatus.building === 1 ? 'build is' : 'builds are' }} still marked as running.
+					{{ project.buildsByStatus.building === 1 ? 'build is' : 'builds are' }} still marked as running. Cleanup only
+					removes these unfinished records.
 				</p>
 			</div>
-			<div class="interrupted-builds__actions">
-				<button
-					class="button button--secondary button--small"
-					type="button"
-					@click="emit('recoverInterrupted')"
-				>
-					<RotateCcw :size="15" />
-					Remove interrupted build
-				</button>
-				<button
-					class="button button--danger button--small"
-					type="button"
-					@click="emit('remove')"
-				>
-					<Trash2 :size="15" />
-					Remove index
-				</button>
-			</div>
+			<button
+				class="button button--secondary button--small"
+				type="button"
+				@click="emit('recoverInterrupted')"
+			>
+				<Eraser :size="15" />
+				Clean up unfinished builds
+			</button>
 		</section>
 
 		<section class="metric-grid metric-grid--three">
@@ -266,11 +257,11 @@
 		Check,
 		Clipboard,
 		Database,
+		Eraser,
 		FolderCode,
 		GitBranch,
 		Pencil,
 		RefreshCw,
-		RotateCcw,
 		Search,
 		TerminalSquare,
 		Trash2,
@@ -432,12 +423,6 @@
 	.interrupted-builds p {
 		margin: 2px 0 0;
 		font-size: 0.68rem;
-	}
-
-	.interrupted-builds__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 7px;
 	}
 
 	.detail-grid {

@@ -80,8 +80,8 @@
 				type="button"
 				@click="emit('recover', interruptedBuildId)"
 			>
-				<RotateCcw :size="14" />
-				Remove interrupted build
+				<Eraser :size="14" />
+				Clean up unfinished build
 			</button>
 			<p
 				v-if="job.result"
@@ -103,7 +103,7 @@
 
 <script setup lang="ts">
 	import { computed } from 'vue';
-	import { Ban, CheckCircle2, FileCode2, LoaderCircle, RotateCcw, XCircle } from '@lucide/vue';
+	import { Ban, CheckCircle2, Eraser, FileCode2, LoaderCircle, XCircle } from '@lucide/vue';
 
 	import type { IndexingJob } from '../../../shared/contracts';
 	import StatusPill from '../../shared/components/StatusPill.vue';
