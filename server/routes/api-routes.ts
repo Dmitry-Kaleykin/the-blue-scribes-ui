@@ -301,7 +301,9 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 		const indexing = await profileIndexingRules.read(profile.name);
 		return {
 			...profile,
-			...(indexing.include === undefined && indexing.exclude === undefined ? {} : { indexing }),
+			...(indexing.include === undefined && indexing.exclude === undefined && indexing.windows1251 !== true
+				? {}
+				: { indexing }),
 		};
 	}
 }
@@ -368,6 +370,9 @@ function profileInput(value: unknown): ProfileInput {
 				}),
 		...(stringList(body.include, 'include') === undefined ? {} : { include: stringList(body.include, 'include')! }),
 		...(stringList(body.exclude, 'exclude') === undefined ? {} : { exclude: stringList(body.exclude, 'exclude')! }),
+		...(boolean(body.windows1251, 'windows1251', { optional: true }) === undefined
+			? {}
+			: { windows1251: boolean(body.windows1251, 'windows1251')! }),
 	};
 }
 
@@ -375,6 +380,7 @@ function indexingRules(input: ProfileInput): ProfileIndexingRules {
 	return {
 		...(input.include === undefined ? {} : { include: input.include }),
 		...(input.exclude === undefined ? {} : { exclude: input.exclude }),
+		...(input.windows1251 === true ? { windows1251: true } : {}),
 	};
 }
 
@@ -385,9 +391,6 @@ function indexProjectInput(value: unknown): IndexProjectInput {
 		profile: text(body.profile, 'profile')!,
 		...(text(body.target, 'target', { optional: true }) === undefined ? {} : { target: text(body.target, 'target')! }),
 		keepReplacedBuilds: integer(body.keepReplacedBuilds ?? 1, 'keepReplacedBuilds', { minimum: 0 })!,
-		...(boolean(body.windows1251, 'windows1251', { optional: true }) === undefined
-			? {}
-			: { windows1251: boolean(body.windows1251, 'windows1251')! }),
 		...(boolean(body.allowDirty, 'allowDirty', { optional: true }) === undefined
 			? {}
 			: { allowDirty: boolean(body.allowDirty, 'allowDirty')! }),

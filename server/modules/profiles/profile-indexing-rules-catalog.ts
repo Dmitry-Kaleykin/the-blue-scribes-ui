@@ -28,7 +28,7 @@ export class ProfileIndexingRulesCatalog {
 
 	async set(profile: string, rules: ProfileIndexingRules): Promise<void> {
 		return this.#mutate((catalog) => {
-			if (rules.include === undefined && rules.exclude === undefined) {
+			if (rules.include === undefined && rules.exclude === undefined && rules.windows1251 !== true) {
 				delete catalog.profiles[profile];
 				return;
 			}
@@ -106,9 +106,11 @@ function storedRules(value: unknown): StoredProfileIndexingRules {
 		const entry = rules as Record<string, unknown>;
 		const include = validatedList(entry.include, `${name} include`);
 		const exclude = validatedList(entry.exclude, `${name} exclude`);
+		const windows1251 = validatedBoolean(entry.windows1251, `${name} windows1251`);
 		profiles[name] = {
 			...(include === undefined ? {} : { include }),
 			...(exclude === undefined ? {} : { exclude }),
+			...(windows1251 === true ? { windows1251: true } : {}),
 		};
 	}
 	return { schemaVersion: 1, profiles };
@@ -122,6 +124,16 @@ function validatedList(value: unknown, label: string): readonly string[] | undef
 		throw new Error(`Saved ${label} patterns must be a list of non-empty strings`);
 	}
 	return value.map((entry) => String(entry).trim());
+}
+
+function validatedBoolean(value: unknown, label: string): boolean | undefined {
+	if (value === undefined) {
+		return undefined;
+	}
+	if (typeof value !== 'boolean') {
+		throw new Error(`Saved ${label} setting must be a boolean`);
+	}
+	return value;
 }
 
 function isMissingFile(error: unknown): boolean {

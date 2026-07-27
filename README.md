@@ -77,8 +77,8 @@ npm run build
 ## Responsibilities
 
 This project owns presentation and local workflow orchestration. It stores
-profile-specific include and exclude defaults in the user's local config, then
-copies them into the core indexing recipe when a project is indexed.
+profile-specific file rules and encoding defaults in the user's local config,
+then copies them into the core indexing recipe when a project is indexed.
 Classification, decoding, cAST chunking, embeddings, reranking, project
 indexes, recipes, target management, and retrieval remain in
 `the-blue-scribes`.

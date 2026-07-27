@@ -135,7 +135,7 @@
 
 			<div class="form-section">
 				<p class="eyebrow">Indexing</p>
-				<h3>File selection</h3>
+				<h3>File handling</h3>
 				<div class="form-grid form-grid--two">
 					<label class="field">
 						<span>Include patterns <em>optional</em></span>
@@ -156,6 +156,16 @@
 						<small>Applied in addition to the normal ignore policy.</small>
 					</label>
 				</div>
+				<label class="check-field">
+					<input
+						v-model="form.windows1251"
+						type="checkbox"
+					/>
+					<span>
+						<strong>Windows-1251 fallback</strong>
+						<small>Decode non-UTF-8 files as Windows-1251 when indexing with this profile.</small>
+					</span>
+				</label>
 			</div>
 
 			<p
@@ -245,6 +255,7 @@
 		rerankingInstruction: props.profile?.reranking?.instruction ?? '',
 		include: props.profile?.indexing?.include?.join('\n') ?? '',
 		exclude: props.profile?.indexing?.exclude?.join('\n') ?? '',
+		windows1251: props.profile?.indexing?.windows1251 ?? false,
 	});
 	const models = ref<readonly ModelSummary[]>([]);
 	const loadingModels = ref(false);
@@ -294,6 +305,7 @@
 				...(form.rerankingInstruction.trim() ? { rerankingInstruction: form.rerankingInstruction.trim() } : {}),
 				...(lines(form.include) === undefined ? {} : { include: lines(form.include) }),
 				...(lines(form.exclude) === undefined ? {} : { exclude: lines(form.exclude) }),
+				...(form.windows1251 ? { windows1251: true } : {}),
 			};
 			const saved = await api.saveProfile(input);
 			emit('saved', saved);

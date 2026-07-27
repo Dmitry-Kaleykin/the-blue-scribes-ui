@@ -54,7 +54,7 @@
 				</label>
 			</div>
 
-			<div class="form-grid form-grid--three">
+			<div class="form-grid form-grid--two">
 				<label class="field">
 					<span>Chunk size</span>
 					<input
@@ -72,16 +72,6 @@
 						required
 						type="number"
 					/>
-				</label>
-				<label class="check-field check-field--compact">
-					<input
-						v-model="form.windows1251"
-						type="checkbox"
-					/>
-					<span>
-						<strong>Windows-1251 fallback</strong>
-						<small>UTF-8 remains preferred.</small>
-					</span>
 				</label>
 			</div>
 
@@ -171,7 +161,6 @@
 		target: '',
 		keepReplacedBuilds: 1,
 		maximumChunkSize: 3000,
-		windows1251: false,
 		allowDirty: false,
 	});
 	const advanced = ref(false);
@@ -190,7 +179,6 @@
 				keepReplacedBuilds: form.keepReplacedBuilds,
 				maximumChunkSize: form.maximumChunkSize,
 				...(form.target.trim() ? { target: form.target.trim() } : {}),
-				...(form.windows1251 ? { windows1251: true } : {}),
 				...(form.allowDirty ? { allowDirty: true } : {}),
 			};
 			emit('started', await api.startIndex(input));

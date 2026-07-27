@@ -22,10 +22,12 @@ describe('IndexingJobRegistry', () => {
 			...input,
 			include: ['src/**', 'docs/**'],
 			exclude: ['dist/**'],
+			windows1251: true,
 		});
 
 		assert.deepEqual(options?.include, ['src/**', 'docs/**']);
 		assert.deepEqual(options?.exclude, ['dist/**']);
+		assert.equal(options?.windows1251, true);
 	});
 
 	it('includes the current job snapshot in progress events', () => {

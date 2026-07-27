@@ -17,12 +17,14 @@ describe('ProfileIndexingRulesCatalog', () => {
 		await catalog.set('local', {
 			include: ['src/**', 'docs/**'],
 			exclude: ['dist/**'],
+			windows1251: true,
 		});
 
 		const reloaded = new ProfileIndexingRulesCatalog({ path });
 		assert.deepEqual(await reloaded.read('local'), {
 			include: ['src/**', 'docs/**'],
 			exclude: ['dist/**'],
+			windows1251: true,
 		});
 		assert.match(await readFile(path, 'utf8'), /"schemaVersion": 1/u);
 
@@ -39,6 +41,16 @@ describe('ProfileIndexingRulesCatalog', () => {
 
 		const stored = JSON.parse(await readFile(path, 'utf8')) as { profiles: Record<string, unknown> };
 		assert.deepEqual(stored.profiles, {});
+	});
+
+	it('does not keep a disabled encoding fallback by itself', async () => {
+		const directory = await mkdtemp(join(tmpdir(), 'scribes-profile-rules-'));
+		const path = join(directory, 'rules.json');
+		const catalog = new ProfileIndexingRulesCatalog({ path });
+
+		await catalog.set('local', { windows1251: false });
+
+		assert.deepEqual(await catalog.read('local'), {});
 	});
 
 	it('treats profile names as data rather than object properties', async () => {

@@ -17,6 +17,7 @@ export interface RerankingProfile {
 export interface ProfileIndexingRules {
 	include?: readonly string[];
 	exclude?: readonly string[];
+	windows1251?: boolean;
 }
 
 export interface ProviderProfile {
@@ -124,7 +125,6 @@ export interface IndexProjectInput {
 	profile: string;
 	target?: string;
 	keepReplacedBuilds: number;
-	windows1251?: boolean;
 	allowDirty?: boolean;
 	maximumChunkSize?: number;
 }
@@ -141,6 +141,7 @@ export interface ProfileInput {
 	rerankingInstruction?: string;
 	include?: readonly string[];
 	exclude?: readonly string[];
+	windows1251?: boolean;
 }
 
 export interface SearchInput {

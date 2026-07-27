@@ -4,9 +4,7 @@
 			<div>
 				<p class="eyebrow">Reusable configuration</p>
 				<h1>Provider profiles</h1>
-				<p class="page-lead">
-					Configure embedding, reranking, and file-selection rules once, then reuse them for every project.
-				</p>
+				<p class="page-lead">Configure models and indexing defaults once, then reuse them for every project.</p>
 			</div>
 			<button
 				class="button button--primary"
@@ -57,6 +55,10 @@
 					<div>
 						<dt>File rules</dt>
 						<dd>{{ indexingRuleSummary(profile) }}</dd>
+					</div>
+					<div>
+						<dt>Windows-1251</dt>
+						<dd>{{ profile.indexing?.windows1251 ? 'fallback enabled' : 'disabled' }}</dd>
 					</div>
 				</dl>
 				<p class="profile-card__url">
