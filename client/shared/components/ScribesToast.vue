@@ -3,9 +3,9 @@
 		name="scribes-toast"
 		mode="out-in"
 	>
-	<div
-		:key="item.id"
-		class="scribes-toast"
+		<div
+			:key="item.id"
+			class="scribes-toast"
 			:class="`scribes-toast--${item.tone}`"
 			role="status"
 		>

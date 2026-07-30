@@ -4,13 +4,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
-import { ProfileIndexingRulesCatalog } from './profile-indexing-rules-catalog.js';
+import { LegacyProfileIndexingRulesCatalog } from './legacy-profile-indexing-rules-catalog.js';
 
-describe('ProfileIndexingRulesCatalog', () => {
+describe('LegacyProfileIndexingRulesCatalog', () => {
 	it('persists and removes profile-specific file rules', async () => {
 		const directory = await mkdtemp(join(tmpdir(), 'scribes-profile-rules-'));
 		const path = join(directory, 'rules.json');
-		const catalog = new ProfileIndexingRulesCatalog({ path });
+		const catalog = new LegacyProfileIndexingRulesCatalog({ path });
 
 		assert.deepEqual(await catalog.read('local'), {});
 
@@ -20,7 +20,7 @@ describe('ProfileIndexingRulesCatalog', () => {
 			windows1251: true,
 		});
 
-		const reloaded = new ProfileIndexingRulesCatalog({ path });
+		const reloaded = new LegacyProfileIndexingRulesCatalog({ path });
 		assert.deepEqual(await reloaded.read('local'), {
 			include: ['src/**', 'docs/**'],
 			exclude: ['dist/**'],
@@ -35,7 +35,7 @@ describe('ProfileIndexingRulesCatalog', () => {
 	it('does not keep empty rule entries', async () => {
 		const directory = await mkdtemp(join(tmpdir(), 'scribes-profile-rules-'));
 		const path = join(directory, 'rules.json');
-		const catalog = new ProfileIndexingRulesCatalog({ path });
+		const catalog = new LegacyProfileIndexingRulesCatalog({ path });
 
 		await catalog.set('local', {});
 
@@ -46,7 +46,7 @@ describe('ProfileIndexingRulesCatalog', () => {
 	it('does not keep a disabled encoding fallback by itself', async () => {
 		const directory = await mkdtemp(join(tmpdir(), 'scribes-profile-rules-'));
 		const path = join(directory, 'rules.json');
-		const catalog = new ProfileIndexingRulesCatalog({ path });
+		const catalog = new LegacyProfileIndexingRulesCatalog({ path });
 
 		await catalog.set('local', { windows1251: false });
 
@@ -56,7 +56,7 @@ describe('ProfileIndexingRulesCatalog', () => {
 	it('treats profile names as data rather than object properties', async () => {
 		const directory = await mkdtemp(join(tmpdir(), 'scribes-profile-rules-'));
 		const path = join(directory, 'rules.json');
-		const catalog = new ProfileIndexingRulesCatalog({ path });
+		const catalog = new LegacyProfileIndexingRulesCatalog({ path });
 
 		await catalog.set('__proto__', { exclude: ['generated/**'] });
 

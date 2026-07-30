@@ -14,17 +14,21 @@ export interface RerankingProfile {
 	instruction?: string;
 }
 
-export interface ProfileIndexingRules {
-	include?: readonly string[];
-	exclude?: readonly string[];
-	windows1251?: boolean;
-}
-
 export interface ProviderProfile {
 	name: string;
 	embedding: EmbeddingProfile;
 	reranking?: RerankingProfile;
-	indexing?: ProfileIndexingRules;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface IndexingPreset {
+	name: string;
+	providerProfile: string;
+	maximumChunkSize?: number;
+	windows1251?: boolean;
+	include?: readonly string[];
+	exclude?: readonly string[];
 	createdAt: string;
 	updatedAt: string;
 }
@@ -78,6 +82,7 @@ export interface ProjectSummary {
 
 export interface BootstrapResponse {
 	profiles: readonly ProviderProfile[];
+	presets: readonly IndexingPreset[];
 	projects: readonly ProjectSummary[];
 	jobs: readonly IndexingJob[];
 	environment: {
@@ -98,6 +103,7 @@ export interface IndexingJob {
 	completedAt?: string;
 	progress?: {
 		phase: string;
+		activity?: string;
 		completed?: number;
 		total?: number;
 		currentPath?: string;
@@ -122,11 +128,10 @@ export interface IndexingJob {
 
 export interface IndexProjectInput {
 	root: string;
-	profile: string;
+	preset: string;
 	target?: string;
 	keepReplacedBuilds: number;
 	allowDirty?: boolean;
-	maximumChunkSize?: number;
 }
 
 export interface ProfileInput {
@@ -139,6 +144,12 @@ export interface ProfileInput {
 	embeddingSuffix?: string;
 	rerankingModel?: string;
 	rerankingInstruction?: string;
+}
+
+export interface IndexingPresetInput {
+	name: string;
+	providerProfile: string;
+	maximumChunkSize?: number;
 	include?: readonly string[];
 	exclude?: readonly string[];
 	windows1251?: boolean;

@@ -5,6 +5,7 @@ import { delimiter, join } from 'node:path';
 
 import {
 	deleteIndexedProject,
+	IndexingPresetService,
 	listIndexedProjects,
 	ProjectIndexingRecipeCatalog,
 	ProjectInspectionService,
@@ -17,14 +18,13 @@ import {
 import type {
 	BootstrapResponse,
 	IndexProjectInput,
+	IndexingPresetInput,
 	ProfileInput,
-	ProfileIndexingRules,
-	ProviderProfile,
 	ProjectSummary,
 	SearchInput,
 } from '../../shared/contracts.js';
 import { IndexingJobRegistry } from '../modules/jobs/indexing-job-registry.js';
-import { ProfileIndexingRulesCatalog } from '../modules/profiles/profile-indexing-rules-catalog.js';
+import { LegacyProfileIndexingRulesCatalog } from '../modules/presets/legacy-profile-indexing-rules-catalog.js';
 import { boolean, integer, record, stringList, text } from '../shared/values.js';
 
 export interface ApiRoutesOptions {
@@ -35,31 +35,43 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 	const profiles = new ProviderProfileService({
 		...(process.env.LM_STUDIO_API_KEY === undefined ? {} : { apiKey: process.env.LM_STUDIO_API_KEY }),
 	});
-	const profileIndexingRules = new ProfileIndexingRulesCatalog();
+	const presets = new IndexingPresetService();
+	const profileIndexingRules = new LegacyProfileIndexingRulesCatalog();
 	const targets = new ProjectRetrievalTargetService();
 	const recipes = new ProjectIndexingRecipeCatalog();
 	const search = new ProjectSearchService({
 		...(process.env.LM_STUDIO_API_KEY === undefined ? {} : { apiKey: process.env.LM_STUDIO_API_KEY }),
 	});
 	const inspection = new ProjectInspectionService();
+	let legacyMigration: Promise<void> | undefined;
 
 	app.get('/api/health', async () => ({
 		status: 'ready',
 		service: 'the-blue-scribes-ui',
 	}));
 
-	app.get('/api/bootstrap', async (): Promise<BootstrapResponse> => ({
-		profiles: await enrichedProfiles(),
-		projects: await projectSummaries(),
-		jobs: options.jobs.list(),
-		environment: {
-			mcpCommand: await executablePath('scribes-mcp'),
-		},
-	}));
+	app.get('/api/bootstrap', async (): Promise<BootstrapResponse> => {
+		legacyMigration ??= migrateLegacyProfileRules();
+		await legacyMigration;
+		return {
+			profiles: await profiles.list(),
+			presets: await presets.list(),
+			projects: await projectSummaries(),
+			jobs: options.jobs.list(),
+			environment: {
+				mcpCommand: await executablePath('scribes-mcp'),
+			},
+		};
+	});
 
 	app.get('/api/profiles', async () => {
-		const items = await enrichedProfiles();
+		const items = await profiles.list();
 		return { count: items.length, profiles: items };
+	});
+
+	app.get('/api/presets', async () => {
+		const items = await presets.list();
+		return { count: items.length, presets: items };
 	});
 
 	app.get('/api/models', async (request) => {
@@ -108,8 +120,7 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 						},
 					}),
 		});
-		await profileIndexingRules.set(input.name, indexingRules(input));
-		return enrichProfile(saved);
+		return saved;
 	});
 
 	app.post('/api/profiles/:name/test', async (request) => {
@@ -120,15 +131,38 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 	app.delete('/api/profiles/:name', async (request) => {
 		const params = record(request.params, 'parameters');
 		const name = text(params.name, 'profile')!;
-		const removed = await profiles.remove(name);
-		await profileIndexingRules.remove(name);
-		return removed;
+		const references = (await presets.list())
+			.filter(({ providerProfile }) => providerProfile === name)
+			.map(({ name: preset }) => preset);
+		if (references.length > 0) {
+			throw new Error(`Provider profile ${name} is used by indexing preset(s): ${references.join(', ')}`);
+		}
+		return profiles.remove(name);
+	});
+
+	app.post('/api/presets', async (request) => {
+		return presets.set(indexingPresetInput(request.body));
+	});
+
+	app.delete('/api/presets/:name', async (request) => {
+		const params = record(request.params, 'parameters');
+		return presets.remove(text(params.name, 'preset')!);
 	});
 
 	app.post('/api/indexing-jobs', async (request, reply) => {
 		const input = indexProjectInput(request.body);
-		const rules = await profileIndexingRules.read(input.profile);
-		const job = options.jobs.startIndex({ ...input, ...rules });
+		const preset = await presets.get(input.preset);
+		const job = options.jobs.startIndex({
+			root: input.root,
+			profile: preset.providerProfile,
+			...(input.target === undefined ? {} : { target: input.target }),
+			keepReplacedBuilds: input.keepReplacedBuilds,
+			...(input.allowDirty === true ? { allowDirty: true } : {}),
+			...(preset.maximumChunkSize === undefined ? {} : { maximumChunkSize: preset.maximumChunkSize }),
+			...(preset.windows1251 === undefined ? {} : { windows1251: preset.windows1251 }),
+			...(preset.include === undefined ? {} : { include: preset.include }),
+			...(preset.exclude === undefined ? {} : { exclude: preset.exclude }),
+		});
 		return reply.code(202).send(job);
 	});
 
@@ -367,19 +401,24 @@ export async function registerApiRoutes(app: FastifyInstance, options: ApiRoutes
 		);
 	}
 
-	async function enrichedProfiles(): Promise<ProviderProfile[]> {
-		const items = await profiles.list();
-		return Promise.all(items.map(enrichProfile));
-	}
-
-	async function enrichProfile(profile: Omit<ProviderProfile, 'indexing'>): Promise<ProviderProfile> {
-		const indexing = await profileIndexingRules.read(profile.name);
-		return {
-			...profile,
-			...(indexing.include === undefined && indexing.exclude === undefined && indexing.windows1251 !== true
-				? {}
-				: { indexing }),
-		};
+	async function migrateLegacyProfileRules(): Promise<void> {
+		const existingPresets = new Set((await presets.list()).map(({ name }) => name));
+		for (const profile of await profiles.list()) {
+			const rules = await profileIndexingRules.read(profile.name);
+			const hasRules = rules.include !== undefined || rules.exclude !== undefined || rules.windows1251 === true;
+			if (!hasRules) {
+				continue;
+			}
+			if (!existingPresets.has(profile.name)) {
+				await presets.set({
+					name: profile.name,
+					providerProfile: profile.name,
+					...rules,
+				});
+				existingPresets.add(profile.name);
+			}
+			await profileIndexingRules.remove(profile.name);
+		}
 	}
 }
 
@@ -443,6 +482,17 @@ function profileInput(value: unknown): ProfileInput {
 			: {
 					rerankingInstruction: text(body.rerankingInstruction, 'rerankingInstruction')!,
 				}),
+	};
+}
+
+function indexingPresetInput(value: unknown): IndexingPresetInput {
+	const body = record(value);
+	return {
+		name: text(body.name, 'name')!,
+		providerProfile: text(body.providerProfile, 'providerProfile')!,
+		...(integer(body.maximumChunkSize, 'maximumChunkSize', { optional: true, minimum: 1 }) === undefined
+			? {}
+			: { maximumChunkSize: integer(body.maximumChunkSize, 'maximumChunkSize', { minimum: 1 })! }),
 		...(stringList(body.include, 'include') === undefined ? {} : { include: stringList(body.include, 'include')! }),
 		...(stringList(body.exclude, 'exclude') === undefined ? {} : { exclude: stringList(body.exclude, 'exclude')! }),
 		...(boolean(body.windows1251, 'windows1251', { optional: true }) === undefined
@@ -451,34 +501,16 @@ function profileInput(value: unknown): ProfileInput {
 	};
 }
 
-function indexingRules(input: ProfileInput): ProfileIndexingRules {
-	return {
-		...(input.include === undefined ? {} : { include: input.include }),
-		...(input.exclude === undefined ? {} : { exclude: input.exclude }),
-		...(input.windows1251 === true ? { windows1251: true } : {}),
-	};
-}
-
 function indexProjectInput(value: unknown): IndexProjectInput {
 	const body = record(value);
 	return {
 		root: text(body.root, 'root')!,
-		profile: text(body.profile, 'profile')!,
+		preset: text(body.preset, 'preset')!,
 		...(text(body.target, 'target', { optional: true }) === undefined ? {} : { target: text(body.target, 'target')! }),
 		keepReplacedBuilds: integer(body.keepReplacedBuilds ?? 1, 'keepReplacedBuilds', { minimum: 0 })!,
 		...(boolean(body.allowDirty, 'allowDirty', { optional: true }) === undefined
 			? {}
 			: { allowDirty: boolean(body.allowDirty, 'allowDirty')! }),
-		...(integer(body.maximumChunkSize, 'maximumChunkSize', {
-			optional: true,
-			minimum: 1,
-		}) === undefined
-			? {}
-			: {
-					maximumChunkSize: integer(body.maximumChunkSize, 'maximumChunkSize', {
-						minimum: 1,
-					})!,
-				}),
 	};
 }
 

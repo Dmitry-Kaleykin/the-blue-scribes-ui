@@ -57,7 +57,9 @@
 	function setActiveIndex(index: number) {
 		activeIndex.value = index;
 		nextTick(() => {
-			if (!listRef.value) {return;}
+			if (!listRef.value) {
+				return;
+			}
 			const options = listRef.value.querySelectorAll('[role="option"]');
 			const activeOption = options[activeIndex.value] as HTMLElement | null;
 			activeOption?.scrollIntoView({ block: 'nearest' });
@@ -67,7 +69,9 @@
 	/** Handle keyboard navigation. */
 	function handleKeydown(event: KeyboardEvent) {
 		const count = props.options.length;
-		if (count === 0) {return;}
+		if (count === 0) {
+			return;
+		}
 
 		switch (event.key) {
 			case 'ArrowDown':
@@ -75,7 +79,9 @@
 				// Skip disabled options
 				{
 					let nextIdx = activeIndex.value + 1;
-					while (nextIdx < count && props.options[nextIdx]?.disabled) {nextIdx++;}
+					while (nextIdx < count && props.options[nextIdx]?.disabled) {
+						nextIdx++;
+					}
 					activeIndex.value = nextIdx < count ? nextIdx : 0;
 					setActiveIndex(activeIndex.value);
 				}
@@ -86,7 +92,9 @@
 				// Skip disabled options
 				{
 					let prevIdx = activeIndex.value - 1;
-					while (prevIdx >= 0 && props.options[prevIdx]?.disabled) {prevIdx--;}
+					while (prevIdx >= 0 && props.options[prevIdx]?.disabled) {
+						prevIdx--;
+					}
 					activeIndex.value = prevIdx >= 0 ? prevIdx : count - 1;
 					setActiveIndex(activeIndex.value);
 				}
@@ -163,9 +171,13 @@
 	 * Select the item at the given index.
 	 */
 	function selectItem(index: number) {
-		if (index < 0 || index >= props.options.length) {return;}
+		if (index < 0 || index >= props.options.length) {
+			return;
+		}
 		const option = props.options[index];
-		if (option.disabled) {return;}
+		if (option.disabled) {
+			return;
+		}
 		emit('update:modelValue', option.value);
 		emit('select', option.value);
 	}
@@ -184,7 +196,9 @@
 		(newVal) => {
 			if (newVal !== null) {
 				const idx = props.options.findIndex((o) => o.value === newVal);
-				if (idx >= 0) {activeIndex.value = idx;}
+				if (idx >= 0) {
+					activeIndex.value = idx;
+				}
 			}
 		},
 	);

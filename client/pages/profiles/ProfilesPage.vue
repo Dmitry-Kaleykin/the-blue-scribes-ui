@@ -4,7 +4,7 @@
 			<div>
 				<p class="eyebrow">Reusable configuration</p>
 				<h1>Provider profiles</h1>
-				<p class="page-lead">Configure models and indexing defaults once, then reuse them for every project.</p>
+				<p class="page-lead">Configure embedding and reranking providers independently from indexing behavior.</p>
 			</div>
 			<button
 				class="button button--primary"
@@ -51,14 +51,6 @@
 					<div>
 						<dt>Reranker</dt>
 						<dd>{{ profile.reranking?.model ?? 'disabled' }}</dd>
-					</div>
-					<div>
-						<dt>File rules</dt>
-						<dd>{{ indexingRuleSummary(profile) }}</dd>
-					</div>
-					<div>
-						<dt>Windows-1251</dt>
-						<dd>{{ profile.indexing?.windows1251 ? 'fallback enabled' : 'disabled' }}</dd>
 					</div>
 				</dl>
 				<p class="profile-card__url">
@@ -127,15 +119,6 @@
 		test: [profile: ProviderProfile];
 		remove: [profile: ProviderProfile];
 	}>();
-
-	function indexingRuleSummary(profile: ProviderProfile): string {
-		const includes = profile.indexing?.include?.length ?? 0;
-		const excludes = profile.indexing?.exclude?.length ?? 0;
-		if (includes === 0 && excludes === 0) {
-			return 'default discovery';
-		}
-		return `${includes} include · ${excludes} exclude`;
-	}
 </script>
 
 <style scoped>

@@ -42,6 +42,13 @@
 				>
 					<Server :size="19" /> Provider profiles
 				</button>
+				<button
+					:class="{ active: activeView === 'presets' }"
+					type="button"
+					@click="navigate('presets')"
+				>
+					<SlidersHorizontal :size="19" /> Indexing presets
+				</button>
 			</nav>
 
 			<div class="sidebar__section">
@@ -73,7 +80,7 @@
 				<button
 					class="sidebar-index"
 					type="button"
-					:disabled="data.profiles.length === 0"
+					:disabled="data.presets.length === 0"
 					@click="indexModal = true"
 				>
 					<Plus :size="17" /> Index project
@@ -155,11 +162,13 @@
 					v-if="activeView === 'dashboard'"
 					:projects="data.projects"
 					:profiles="data.profiles"
+					:presets="data.presets"
 					:jobs="data.jobs"
 					@index="indexModal = true"
 					@project="openProject"
 					@search="openSearch"
 					@profiles="navigate('profiles')"
+					@presets="navigate('presets')"
 					@cancel-job="cancelJob"
 					@recover-build="recoverBuild"
 				/>
@@ -170,6 +179,14 @@
 					@edit="openProfile"
 					@test="testProfile"
 					@remove="removeProfile"
+				/>
+				<PresetsPage
+					v-else-if="activeView === 'presets'"
+					:presets="data.presets"
+					:profiles="data.profiles"
+					@create="openPreset()"
+					@edit="openPreset"
+					@remove="removePreset"
 				/>
 				<SearchPage
 					v-else-if="activeView === 'search'"
@@ -194,7 +211,8 @@
 
 		<IndexProjectModal
 			v-if="indexModal"
-			:profiles="data.profiles"
+			:presets="data.presets"
+			:projects="data.projects"
 			@close="indexModal = false"
 			@started="jobStarted"
 		/>
@@ -203,6 +221,13 @@
 			:profile="editingProfile"
 			@close="profileModal = false"
 			@saved="profileSaved"
+		/>
+		<PresetModal
+			v-if="presetModal"
+			:preset="editingPreset"
+			:profiles="data.profiles"
+			@close="presetModal = false"
+			@saved="presetSaved"
 		/>
 
 		<ScribesToast
@@ -225,24 +250,34 @@
 		RefreshCw,
 		Search,
 		Server,
+		SlidersHorizontal,
 		X,
 	} from '@lucide/vue';
 
-	import type { BootstrapResponse, IndexingJob, ProjectSummary, ProviderProfile } from '../shared/contracts';
+	import type {
+		BootstrapResponse,
+		IndexingJob,
+		IndexingPreset,
+		ProjectSummary,
+		ProviderProfile,
+	} from '../shared/contracts';
 	import IndexProjectModal from './features/index-project/IndexProjectModal.vue';
+	import PresetModal from './features/preset-form/PresetModal.vue';
 	import ProfileModal from './features/profile-form/ProfileModal.vue';
 	import DashboardPage from './pages/dashboard/DashboardPage.vue';
 	import ProfilesPage from './pages/profiles/ProfilesPage.vue';
+	import PresetsPage from './pages/presets/PresetsPage.vue';
 	import ProjectPage from './pages/project/ProjectPage.vue';
 	import SearchPage from './pages/search/SearchPage.vue';
 	import ScribesToast from './shared/components/ScribesToast.vue';
 	import { api, subscribeToJob } from './shared/api/client';
 	import { useToast } from './shared/composables/useToast';
 
-	type View = 'dashboard' | 'profiles' | 'search' | 'project';
+	type View = 'dashboard' | 'profiles' | 'presets' | 'search' | 'project';
 
 	const data = ref<BootstrapResponse>({
 		profiles: [],
+		presets: [],
 		projects: [],
 		jobs: [],
 		environment: { mcpCommand: 'scribes-mcp' },
@@ -257,6 +292,8 @@
 	const indexModal = ref(false);
 	const profileModal = ref(false);
 	const editingProfile = ref<ProviderProfile>();
+	const presetModal = ref(false);
+	const editingPreset = ref<IndexingPreset>();
 	const subscriptions = new Map<string, () => void>();
 	const { current: toastCurrent, showToast, dismissToast } = useToast();
 
@@ -339,6 +376,11 @@
 	function openProfile(profile?: ProviderProfile): void {
 		editingProfile.value = profile;
 		profileModal.value = true;
+	}
+
+	function openPreset(preset?: IndexingPreset): void {
+		editingPreset.value = preset;
+		presetModal.value = true;
 	}
 
 	function watchJob(id: string): void {
@@ -472,6 +514,13 @@
 		showToast('success', `Profile ${profile.name} was saved.`);
 	}
 
+	async function presetSaved(preset: IndexingPreset): Promise<void> {
+		presetModal.value = false;
+		editingPreset.value = undefined;
+		await load();
+		showToast('success', `Preset ${preset.name} was saved.`);
+	}
+
 	async function testProfile(profile: ProviderProfile): Promise<void> {
 		showToast('success', `Testing ${profile.name} against LM Studio…`);
 		try {
@@ -486,7 +535,7 @@
 	async function removeProfile(profile: ProviderProfile): Promise<void> {
 		if (
 			!window.confirm(
-				`Delete provider profile "${profile.name}"? Existing recipes that refer to it will need another profile.`,
+				`Delete provider profile "${profile.name}"? Remove any indexing presets that use it first. Existing recipes that refer to it will also need another profile.`,
 			)
 		) {
 			return;
@@ -495,6 +544,19 @@
 			await api.deleteProfile(profile.name);
 			await load();
 			showToast('success', `Profile ${profile.name} was deleted.`);
+		} catch (reason: unknown) {
+			showFailure(reason);
+		}
+	}
+
+	async function removePreset(preset: IndexingPreset): Promise<void> {
+		if (!window.confirm(`Delete indexing preset "${preset.name}"? Existing project recipes are unaffected.`)) {
+			return;
+		}
+		try {
+			await api.deletePreset(preset.name);
+			await load();
+			showToast('success', `Preset ${preset.name} was deleted.`);
 		} catch (reason: unknown) {
 			showFailure(reason);
 		}

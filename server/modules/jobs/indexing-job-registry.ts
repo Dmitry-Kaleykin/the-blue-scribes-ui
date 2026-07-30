@@ -2,10 +2,20 @@ import { randomUUID } from 'node:crypto';
 
 import { ProjectIndexingService, type ProjectIndexingEvent, type ProjectIndexingOutcome } from 'the-blue-scribes';
 
-import type { IndexingJob, IndexProjectInput, ProfileIndexingRules } from '../../../shared/contracts.js';
+import type { IndexingJob } from '../../../shared/contracts.js';
 import { serializeError } from '../../shared/serialize-error.js';
 
-type IndexingJobInput = IndexProjectInput & ProfileIndexingRules;
+interface IndexingJobInput {
+	root: string;
+	profile: string;
+	target?: string;
+	keepReplacedBuilds: number;
+	allowDirty?: boolean;
+	maximumChunkSize?: number;
+	windows1251?: boolean;
+	include?: readonly string[];
+	exclude?: readonly string[];
+}
 
 interface InternalJob {
 	snapshot: IndexingJob;
@@ -14,6 +24,7 @@ interface InternalJob {
 	listeners: Set<(event: unknown) => void>;
 	lastProgressAt: number;
 	previousPhase?: string;
+	previousActivity?: string;
 }
 
 export interface IndexingJobRegistryOptions {
@@ -177,11 +188,13 @@ export class IndexingJobRegistry {
 			job.snapshot.progress = event.progress;
 			const now = Date.now();
 			const phaseChanged = event.progress.phase !== job.previousPhase;
+			const activityChanged = event.progress.activity !== job.previousActivity;
 			const complete = event.progress.total !== undefined && event.progress.completed === event.progress.total;
-			if (!phaseChanged && !complete && now - job.lastProgressAt < 200) {
+			if (!phaseChanged && !activityChanged && !complete && now - job.lastProgressAt < 200) {
 				return;
 			}
 			job.previousPhase = event.progress.phase;
+			job.previousActivity = event.progress.activity;
 			job.lastProgressAt = now;
 		}
 		this.#publish(job, { ...event, job: job.snapshot });

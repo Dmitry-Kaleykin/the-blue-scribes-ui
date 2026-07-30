@@ -36,7 +36,10 @@
 			<div
 				v-if="job.status === 'running'"
 				class="progress-track"
-				:class="{ 'progress-track--indeterminate': percent === undefined }"
+				:class="{
+					'progress-track--indeterminate': percent === undefined,
+					'progress-track--active': job.progress?.activity !== undefined,
+				}"
 			>
 				<span :style="percent === undefined ? undefined : { width: `${percent}%` }" />
 			</div>
@@ -184,6 +187,11 @@
 		if (props.job.status !== 'running') {
 			return props.job.status;
 		}
+		if (props.job.progress?.phase === 'processing' && props.job.progress.activity) {
+			return props.job.progress.activity === 'chunking'
+				? 'Chunking file'
+				: props.job.progress.activity.replaceAll('-', ' ');
+		}
 		return (
 			{
 				'source-inspection': 'Inspecting source',
@@ -280,6 +288,21 @@
 	.progress-track--indeterminate span {
 		width: 30%;
 		animation: progress 1.4s ease-in-out infinite;
+	}
+
+	.progress-track--active::after {
+		position: absolute;
+		inset: 0 auto 0 -25%;
+		width: 25%;
+		background: rgb(255 255 255 / 48%);
+		animation: progress-activity 1.2s ease-in-out infinite;
+		content: '';
+	}
+
+	@keyframes progress-activity {
+		to {
+			transform: translateX(500%);
+		}
 	}
 
 	.job-panel__details {

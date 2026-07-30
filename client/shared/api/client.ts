@@ -2,6 +2,8 @@ import type {
 	ApiError,
 	BootstrapResponse,
 	IndexingJob,
+	IndexingPreset,
+	IndexingPresetInput,
 	IndexProjectInput,
 	ModelSummary,
 	ProfileInput,
@@ -44,6 +46,12 @@ export const api = {
 			reranking?: { model: string; score: number };
 		}>(`/api/profiles/${encodeURIComponent(name)}/test`, { method: 'POST' }),
 	deleteProfile: (name: string) => request(`/api/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' }),
+	savePreset: (input: IndexingPresetInput) =>
+		request<IndexingPreset>('/api/presets', {
+			method: 'POST',
+			body: JSON.stringify(input),
+		}),
+	deletePreset: (name: string) => request(`/api/presets/${encodeURIComponent(name)}`, { method: 'DELETE' }),
 	startIndex: (input: IndexProjectInput) =>
 		request<IndexingJob>('/api/indexing-jobs', {
 			method: 'POST',

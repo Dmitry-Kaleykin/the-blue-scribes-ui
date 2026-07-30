@@ -1,42 +1,42 @@
 :root {
-  /* 
+	/*
    * Z-Index Layer System
    * 
    * Layers are grouped by UI concept with gaps between groups
    * to allow inserting new layers without renumbering.
    */
 
-  /* Base layout layers */
-  --z-base: 0;
-  --z-sticky: 1;
+	/* Base layout layers */
+	--z-base: 0;
+	--z-sticky: 1;
 
-  /* Overlay layers (scrim, dim overlays) */
-  --z-overlay: 10;
+	/* Overlay layers (scrim, dim overlays) */
+	--z-overlay: 10;
 
-  /* Fixed sidebar, nav panels */
-  --z-sidebar: 20;
+	/* Fixed sidebar, nav panels */
+	--z-sidebar: 20;
 
-  /* Sticky headers, top bars */
-  --z-topbar: 30;
+	/* Sticky headers, top bars */
+	--z-topbar: 30;
 
-  /* Dropdowns, select menus, tooltips */
-  --z-dropdown: 100;
+	/* Dropdowns, select menus, tooltips */
+	--z-dropdown: 100;
 
-  /* Tooltips (above dropdowns) */
-  --z-tooltip: 110;
+	/* Tooltips (above dropdowns) */
+	--z-tooltip: 110;
 
-  /* Modal backdrops */
-  --z-modal-backdrop: 200;
+	/* Modal backdrops */
+	--z-modal-backdrop: 200;
 
-  /* Modal dialogs, drawers */
-  --z-modal: 210;
+	/* Modal dialogs, drawers */
+	--z-modal: 210;
 
-  /* Toasts, snackbars */
-  --z-toast: 300;
+	/* Toasts, snackbars */
+	--z-toast: 300;
 
-  /* System notifications */
-  --z-notification: 310;
+	/* System notifications */
+	--z-notification: 310;
 
-  /* Full-screen overlays, loading screens */
-  --z-overlay-full: 400;
+	/* Full-screen overlays, loading screens */
+	--z-overlay-full: 400;
 }

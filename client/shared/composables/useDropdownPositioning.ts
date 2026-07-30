@@ -28,7 +28,9 @@ export function useDropdownPositioning(options: { offset?: number; padding?: num
 	});
 
 	function computePositionFn() {
-		if (!triggerRef.value || !floatingRef.value) {return;}
+		if (!triggerRef.value || !floatingRef.value) {
+			return;
+		}
 
 		computePosition(triggerRef.value, floatingRef.value, {
 			placement: 'bottom-start',
@@ -45,7 +47,9 @@ export function useDropdownPositioning(options: { offset?: number; padding?: num
 	}
 
 	function startPositioning() {
-		if (cleanupAutoUpdate || !triggerRef.value || !floatingRef.value) {return;}
+		if (cleanupAutoUpdate || !triggerRef.value || !floatingRef.value) {
+			return;
+		}
 
 		cleanupAutoUpdate = autoUpdate(triggerRef.value, floatingRef.value, computePositionFn);
 		computePositionFn();

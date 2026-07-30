@@ -2,31 +2,35 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-import type { ProfileIndexingRules } from '../../../shared/contracts.js';
+export interface LegacyProfileIndexingRules {
+	include?: readonly string[];
+	exclude?: readonly string[];
+	windows1251?: boolean;
+}
 
 interface StoredProfileIndexingRules {
 	schemaVersion: 1;
-	profiles: Record<string, ProfileIndexingRules>;
+	profiles: Record<string, LegacyProfileIndexingRules>;
 }
 
-export interface ProfileIndexingRulesCatalogOptions {
+export interface LegacyProfileIndexingRulesCatalogOptions {
 	path?: string;
 }
 
-export class ProfileIndexingRulesCatalog {
+export class LegacyProfileIndexingRulesCatalog {
 	readonly #path: string;
 	#pendingMutation: Promise<void> = Promise.resolve();
 
-	constructor(options: ProfileIndexingRulesCatalogOptions = {}) {
+	constructor(options: LegacyProfileIndexingRulesCatalogOptions = {}) {
 		this.#path = options.path ?? defaultPath();
 	}
 
-	async read(profile: string): Promise<ProfileIndexingRules> {
+	async read(profile: string): Promise<LegacyProfileIndexingRules> {
 		const catalog = await this.#readCatalog();
 		return Object.hasOwn(catalog.profiles, profile) ? structuredClone(catalog.profiles[profile]!) : {};
 	}
 
-	async set(profile: string, rules: ProfileIndexingRules): Promise<void> {
+	async set(profile: string, rules: LegacyProfileIndexingRules): Promise<void> {
 		return this.#mutate((catalog) => {
 			if (rules.include === undefined && rules.exclude === undefined && rules.windows1251 !== true) {
 				delete catalog.profiles[profile];
@@ -81,7 +85,7 @@ function defaultPath(): string {
 function emptyCatalog(): StoredProfileIndexingRules {
 	return {
 		schemaVersion: 1,
-		profiles: Object.create(null) as Record<string, ProfileIndexingRules>,
+		profiles: Object.create(null) as Record<string, LegacyProfileIndexingRules>,
 	};
 }
 
@@ -98,7 +102,10 @@ function storedRules(value: unknown): StoredProfileIndexingRules {
 	) {
 		throw new Error('Saved profile indexing rules use an unsupported format');
 	}
-	const profiles: Record<string, ProfileIndexingRules> = Object.create(null) as Record<string, ProfileIndexingRules>;
+	const profiles: Record<string, LegacyProfileIndexingRules> = Object.create(null) as Record<
+		string,
+		LegacyProfileIndexingRules
+	>;
 	for (const [name, rules] of Object.entries(record.profiles)) {
 		if (typeof rules !== 'object' || rules === null || Array.isArray(rules)) {
 			throw new Error(`Saved indexing rules for ${name} must be an object`);

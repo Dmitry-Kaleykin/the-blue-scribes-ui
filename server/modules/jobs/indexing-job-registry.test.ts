@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { type ProjectIndexingEvent, ProjectIndexingService, type ProjectIndexingOutcome } from 'the-blue-scribes';
+import { ProjectIndexingService, type ProjectIndexingOutcome } from 'the-blue-scribes';
 
 import { IndexingJobRegistry } from './indexing-job-registry.js';
 
 type IndexOptions = Parameters<ProjectIndexingService['index']>[0];
 
 describe('IndexingJobRegistry', () => {
-	it('passes profile file rules to the indexing service', () => {
+	it('passes resolved preset settings to the indexing service', () => {
 		let options: IndexOptions | undefined;
 		const service = {
 			index(input: IndexOptions): Promise<ProjectIndexingOutcome> {
@@ -46,18 +46,20 @@ describe('IndexingJobRegistry', () => {
 		options!.onEvent!({
 			type: 'indexing-progress',
 			progress: {
-				phase: 'generating-embeddings',
+				phase: 'processing',
+				activity: 'chunking',
 				completed: 2,
 				total: 4,
 				currentPath: 'src/example.ts',
 			},
-		} as ProjectIndexingEvent);
+		});
 
 		assert.equal(jobs.get(job.id).progress?.completed, 2);
 		assert.deepEqual(events.at(-1), {
 			type: 'indexing-progress',
 			progress: {
-				phase: 'generating-embeddings',
+				phase: 'processing',
+				activity: 'chunking',
 				completed: 2,
 				total: 4,
 				currentPath: 'src/example.ts',

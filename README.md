@@ -1,8 +1,9 @@
 # The Blue Scribes UI
 
 A local Vue 3 control panel for [The Blue Scribes](../the-blue-scribes). It turns
-provider profiles, indexing recipes, retrieval targets, search, and MCP setup into
-guided workflows while keeping the source of truth in the Scribes core library.
+provider profiles, indexing presets, project recipes, retrieval targets, search,
+and MCP setup into guided workflows while keeping the source of truth in the
+Scribes core library.
 
 The UI binds only to `127.0.0.1`, checks the request host and origin, and does not
 send project files to a browser service. LM Studio remains the only model
@@ -77,8 +78,12 @@ npm run build
 ## Responsibilities
 
 This project owns presentation and local workflow orchestration. It stores
-profile-specific file rules and encoding defaults in the user's local config,
-then copies them into the core indexing recipe when a project is indexed.
-Classification, decoding, cAST chunking, embeddings, reranking, project
-indexes, recipes, target management, and retrieval remain in
-`the-blue-scribes`.
+provider profiles and indexing presets through the core services. Profiles own
+embedding and reranking inference. Presets reference a provider profile and own
+chunk size, encoding fallback, and include/exclude rules. Starting an index
+copies the selected preset's effective values into the concrete project recipe.
+
+The first launch after upgrading migrates the former UI-only indexing rules into
+same-named core presets and removes those legacy entries. Classification,
+decoding, cAST chunking, embeddings, reranking, project indexes, recipes, target
+management, and retrieval remain in `the-blue-scribes`.

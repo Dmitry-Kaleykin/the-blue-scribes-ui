@@ -35,10 +35,10 @@
 				</div>
 			</article>
 			<article class="metric-card">
-				<span class="metric-card__icon metric-card__icon--violet"><Server :size="20" /></span>
+				<span class="metric-card__icon metric-card__icon--violet"><SlidersHorizontal :size="20" /></span>
 				<div>
-					<strong>{{ profiles.length }}</strong
-					><span>Provider profiles</span>
+					<strong>{{ presets.length }}</strong
+					><span>Indexing presets</span>
 				</div>
 			</article>
 			<article class="metric-card">
@@ -146,8 +146,8 @@
 			>
 				<span class="empty-state__mark"><FolderCode :size="30" /></span>
 				<h3>No projects indexed yet</h3>
-				<p v-if="profiles.length > 0">Choose a directory and build your first private retrieval index.</p>
-				<p v-else>Create an LM Studio profile first, then index a project.</p>
+				<p v-if="presets.length > 0">Choose a directory and build your first private retrieval index.</p>
+				<p v-else>Create a provider profile and an indexing preset first.</p>
 				<div class="button-row">
 					<button
 						v-if="profiles.length === 0"
@@ -158,9 +158,17 @@
 						<Server :size="16" /> Set up a profile
 					</button>
 					<button
+						v-else-if="presets.length === 0"
+						class="button button--secondary"
+						type="button"
+						@click="emit('presets')"
+					>
+						<SlidersHorizontal :size="16" /> Set up a preset
+					</button>
+					<button
 						class="button button--primary"
 						type="button"
-						:disabled="profiles.length === 0"
+						:disabled="presets.length === 0"
 						@click="emit('index')"
 					>
 						<Plus :size="16" /> Index project
@@ -182,11 +190,11 @@
 			<button
 				class="quick-action"
 				type="button"
-				@click="emit('profiles')"
+				@click="emit('presets')"
 			>
-				<span><Server :size="19" /></span>
-				<strong>Manage providers</strong>
-				<small>Discover and diagnose LM Studio models.</small>
+				<span><SlidersHorizontal :size="19" /></span>
+				<strong>Manage presets</strong>
+				<small>Reuse chunking, encoding, and discovery settings.</small>
 			</button>
 			<button
 				class="quick-action"
@@ -204,15 +212,26 @@
 
 <script setup lang="ts">
 	import { computed } from 'vue';
-	import { ArrowRight, Database, FolderCode, Layers3, Plus, RefreshCw, Search, Server } from '@lucide/vue';
+	import {
+		ArrowRight,
+		Database,
+		FolderCode,
+		Layers3,
+		Plus,
+		RefreshCw,
+		Search,
+		Server,
+		SlidersHorizontal,
+	} from '@lucide/vue';
 
-	import type { IndexingJob, ProjectSummary, ProviderProfile } from '../../../shared/contracts';
+	import type { IndexingJob, IndexingPreset, ProjectSummary, ProviderProfile } from '../../../shared/contracts';
 	import JobPanel from '../../entities/project/JobPanel.vue';
 	import StatusPill from '../../shared/components/StatusPill.vue';
 
 	const props = defineProps<{
 		projects: readonly ProjectSummary[];
 		profiles: readonly ProviderProfile[];
+		presets: readonly IndexingPreset[];
 		jobs: readonly IndexingJob[];
 	}>();
 
@@ -221,6 +240,7 @@
 		project: [project: ProjectSummary];
 		search: [project: ProjectSummary];
 		profiles: [];
+		presets: [];
 		cancelJob: [id: string];
 		recoverBuild: [indexBuildId: string];
 	}>();

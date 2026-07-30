@@ -109,7 +109,9 @@
 	});
 
 	function toggle() {
-		if (props.disabled) {return;}
+		if (props.disabled) {
+			return;
+		}
 		if (isOpen.value) {
 			close();
 		} else {
@@ -118,7 +120,9 @@
 	}
 
 	function open() {
-		if (props.disabled || isOpen.value) {return;}
+		if (props.disabled || isOpen.value) {
+			return;
+		}
 		isOpen.value = true;
 
 		// Capture trigger width for dropdown matching
@@ -135,7 +139,9 @@
 	}
 
 	function close() {
-		if (!isOpen.value) {return;}
+		if (!isOpen.value) {
+			return;
+		}
 		isOpen.value = false;
 		emit('close', props.modelValue as string);
 	}
@@ -146,7 +152,9 @@
 
 	function select(value: string) {
 		const option = props.options.find((opt) => opt.value === value);
-		if (option?.disabled) {return;}
+		if (option?.disabled) {
+			return;
+		}
 		emit('update:modelValue', value);
 		close();
 	}
@@ -159,9 +167,13 @@
 
 	// Close dropdown when clicking outside
 	function handleClickOutside(event: MouseEvent) {
-		if (!isOpen.value) {return;}
+		if (!isOpen.value) {
+			return;
+		}
 		const selectEl = triggerRef.value?.closest('.scribes-select');
-		if (selectEl && selectEl.contains(event.target as Node)) {return;}
+		if (selectEl && selectEl.contains(event.target as Node)) {
+			return;
+		}
 		close();
 	}
 
